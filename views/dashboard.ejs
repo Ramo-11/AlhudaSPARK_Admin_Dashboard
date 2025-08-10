@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Dashboard</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link active">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/vendors" class="nav-link">
+                        <span class="nav-icon">🏪</span>
+                        Vendors
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/teams" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Teams
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sponsors" class="nav-link">
+                        <span class="nav-icon">🤝</span>
+                        Sponsors
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>Dashboard Overview</h1>
+                <p>Manage vendors, teams, and sponsors</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🏪</div>
+                    <div class="stat-info">
+                        <h3 id="vendors-count">0</h3>
+                        <p>Total Vendors</p>
+                    </div>
+                    <div class="stat-badge vendors-badge">
+                        <span id="active-vendors">0</span> Active
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <h3 id="teams-count">0</h3>
+                        <p>Total Teams</p>
+                    </div>
+                    <div class="stat-badge teams-badge">
+                        <span id="approved-teams">0</span> Approved
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🤝</div>
+                    <div class="stat-info">
+                        <h3 id="sponsors-count">0</h3>
+                        <p>Total Sponsors</p>
+                    </div>
+                    <div class="stat-badge sponsors-badge">
+                        <span id="active-sponsors">0</span> Active
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <h3 id="revenue-count">$0</h3>
+                        <p>Total Revenue</p>
+                    </div>
+                    <div class="stat-badge revenue-badge">
+                        <span id="pending-payments">0</span> Pending
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h2>Quick Actions</h2>
+                <div class="action-grid">
+                    <a href="/vendors/new" class="action-btn">
+                        <span class="action-icon">➕</span>
+                        Add Vendor
+                    </a>
+                    <a href="/teams/new" class="action-btn">
+                        <span class="action-icon">➕</span>
+                        Add Team
+                    </a>
+                    <a href="/sponsors/new" class="action-btn">
+                        <span class="action-icon">➕</span>
+                        Add Sponsor
+                    </a>
+                    <a href="/reports" class="action-btn">
+                        <span class="action-icon">📈</span>
+                        View Reports
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h2>Recent Activity</h2>
+                <div class="activity-list" id="activity-list">
+                    <!-- Activity items will be populated by JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

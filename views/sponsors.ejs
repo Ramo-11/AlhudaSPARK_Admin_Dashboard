@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsors - Admin Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Admin Dashboard</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/vendors" class="nav-link">
+                        <span class="nav-icon">🏪</span>
+                        Vendors
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/teams" class="nav-link">
+                        <span class="nav-icon">👥</span>
+                        Teams
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sponsors" class="nav-link active">
+                        <span class="nav-icon">🤝</span>
+                        Sponsors
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>Sponsors Management</h1>
+                <p>Manage event sponsors and sponsorship tiers</p>
+            </div>
+
+            <!-- Filters and Actions -->
+            <div class="filters-section">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <select id="tier-filter" class="form-select">
+                            <option value="">All Tiers</option>
+                            <option value="diamond">Diamond</option>
+                            <option value="platinum">Platinum</option>
+                            <option value="gold">Gold</option>
+                            <option value="silver">Silver</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <select id="payment-filter" class="form-select">
+                            <option value="">All Payment Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <select id="benefits-filter" class="form-select">
+                            <option value="">All Benefits Status</option>
+                            <option value="sent">Benefits Sent</option>
+                            <option value="pending">Benefits Pending</option>
+                        </select>
+                    </div>
+                    <div class="action-group">
+                        <button id="add-sponsor-btn" class="btn btn-primary">+ Add Sponsor</button>
+                        <button id="export-btn" class="btn btn-secondary">Export</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sponsorship Tiers Overview -->
+            <div class="tiers-overview">
+                <h2>Sponsorship Tiers</h2>
+                <div class="tiers-grid">
+                    <div class="tier-card diamond">
+                        <h3>Diamond</h3>
+                        <div class="tier-amount">$5,000+</div>
+                        <div class="tier-count" id="diamond-count">0</div>
+                    </div>
+                    <div class="tier-card platinum">
+                        <h3>Platinum</h3>
+                        <div class="tier-amount">$2,500+</div>
+                        <div class="tier-count" id="platinum-count">0</div>
+                    </div>
+                    <div class="tier-card gold">
+                        <h3>Gold</h3>
+                        <div class="tier-amount">$1,000+</div>
+                        <div class="tier-count" id="gold-count">0</div>
+                    </div>
+                    <div class="tier-card silver">
+                        <h3>Silver</h3>
+                        <div class="tier-amount">$500+</div>
+                        <div class="tier-count" id="silver-count">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sponsors Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Sponsors List</h2>
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Search sponsors..." class="form-input">
+                    </div>
+                </div>
+                
+                <table class="data-table" id="sponsors-table">
+                    <thead>
+                        <tr>
+                            <th>Sponsor ID</th>
+                            <th>Company Name</th>
+                            <th>Contact Person</th>
+                            <th>Tier</th>
+                            <th>Amount</th>
+                            <th>Payment Status</th>
+                            <th>Benefits</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sponsors-table-body">
+                        <!-- Sponsor rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                
+                <div class="table-footer">
+                    <div class="pagination" id="pagination">
+                        <!-- Pagination will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Sponsor Modal -->
+    <div id="sponsor-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Sponsor</h2>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            
+            <form id="sponsor-form" class="modal-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Company Name *</label>
+                        <input type="text" name="companyName" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Contact Person *</label>
+                        <input type="text" name="contactPerson" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Email *</label>
+                        <input type="email" name="email" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Phone *</label>
+                        <input type="tel" name="phone" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Sponsorship Tier *</label>
+                        <select name="tier" class="form-select" required>
+                            <option value="">Select Tier</option>
+                            <option value="diamond">Diamond ($5,000+)</option>
+                            <option value="platinum">Platinum ($2,500+)</option>
+                            <option value="gold">Gold ($1,000+)</option>
+                            <option value="silver">Silver ($500+)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Sponsorship Amount *</label>
+                        <input type="number" name="amount" class="form-input" min="0" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Website</label>
+                        <input type="url" name="website" class="form-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Payment Method</label>
+                        <select name="paymentMethod" class="form-select">
+                            <option value="check">Check</option>
+                            <option value="cash">Cash</option>
+                            <option value="zelle">Zelle</option>
+                            <option value="venmo">Venmo</option>
+                            <option value="stripe">Stripe</option>
+                            <option value="zeffy">Zeffy</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label">Address</label>
+                        <input type="text" name="address" class="form-input">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label">Comments</label>
+                        <textarea name="comments" class="form-textarea"></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Sponsor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Confirm Delete</h2>
+                <button class="close-btn" id="close-delete-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this sponsor? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-delete">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefits Modal -->
+    <div id="benefits-modal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Update Benefits Status</h2>
+                <button class="close-btn" id="close-benefits-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Mark benefits as sent for <strong id="benefits-sponsor-name"></strong>?</p>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="benefits-notes" class="form-textarea" placeholder="Optional notes about benefits sent..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-benefits">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-benefits">Mark as Sent</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/sponsors.js"></script>
+</body>
+</html>

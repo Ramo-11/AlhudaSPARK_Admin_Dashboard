@@ -1,0 +1,462 @@
+// Vendors JavaScript - vendors.js
+
+let currentVendors = [];
+let filteredVendors = [];
+let currentPage = 1;
+let itemsPerPage = 10;
+let isEditing = false;
+let editingVendorId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initVendorsPage();
+});
+
+function initVendorsPage() {
+    loadVendors();
+    setupEventListeners();
+    setupBoothPricing();
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Add vendor button
+    document.getElementById('add-vendor-btn').addEventListener('click', openAddVendorModal);
+    
+    // Modal controls
+    document.getElementById('close-modal').addEventListener('click', closeModal);
+    document.getElementById('cancel-btn').addEventListener('click', closeModal);
+    document.getElementById('close-delete-modal').addEventListener('click', closeDeleteModal);
+    document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
+    
+    // Form submission
+    document.getElementById('vendor-form').addEventListener('submit', handleFormSubmit);
+    
+    // Delete confirmation
+    document.getElementById('confirm-delete').addEventListener('click', handleDelete);
+    
+    // Filters
+    document.getElementById('type-filter').addEventListener('change', applyFilters);
+    document.getElementById('payment-filter').addEventListener('change', applyFilters);
+    document.getElementById('location-filter').addEventListener('change', applyFilters);
+    document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
+    
+    // Export button
+    document.getElementById('export-btn').addEventListener('click', exportVendors);
+    
+    // Modal backdrop click
+    document.getElementById('vendor-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    
+    document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeDeleteModal();
+    });
+    
+    // Booth location change - update pricing
+    document.querySelector('select[name="boothLocation"]').addEventListener('change', updateBoothPricing);
+}
+
+// Setup booth pricing display
+function setupBoothPricing() {
+    const boothPricing = {
+        'back': 750,
+        'central': 1100,
+        'side_corner': 1400,
+        'front_corner': 1600
+    };
+    
+    const locationSelect = document.querySelector('select[name="boothLocation"]');
+    const options = locationSelect.querySelectorAll('option');
+    
+    options.forEach(option => {
+        const value = option.value;
+        if (value && boothPricing[value]) {
+            option.textContent = option.textContent.replace(/\$[\d,]+/, `$${boothPricing[value].toLocaleString()}`);
+        }
+    });
+}
+
+// Update booth pricing when location changes
+function updateBoothPricing() {
+    const locationSelect = document.querySelector('select[name="boothLocation"]');
+    const selectedLocation = locationSelect.value;
+    
+    const boothPricing = {
+        'back': 750,
+        'central': 1100,
+        'side_corner': 1400,
+        'front_corner': 1600
+    };
+    
+    // You could update a price display field here if needed
+    console.log('Selected location:', selectedLocation, 'Price:', boothPricing[selectedLocation] || 0);
+}
+
+// Load vendors from API
+async function loadVendors() {
+    try {
+        showLoading();
+        const response = await fetch('/api/vendors');
+        const result = await response.json();
+        
+        if (result.success) {
+            currentVendors = result.data;
+            filteredVendors = [...currentVendors];
+            updateVendorsTable();
+            updatePagination();
+        } else {
+            showToast('Failed to load vendors', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading vendors:', error);
+        showToast('Error loading vendors', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Update vendors table
+function updateVendorsTable() {
+    const tbody = document.getElementById('vendors-table-body');
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedVendors = filteredVendors.slice(startIndex, endIndex);
+    
+    if (paginatedVendors.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" style="text-align: center; padding: 2rem;">
+                    No vendors found
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = paginatedVendors.map(vendor => `
+        <tr>
+            <td>${vendor.vendorId}</td>
+            <td><strong>${vendor.businessName}</strong></td>
+            <td>${vendor.contactPerson}</td>
+            <td>${formatVendorType(vendor.vendorType)}</td>
+            <td>${formatBoothLocation(vendor.boothLocation)}</td>
+            <td>$${vendor.boothPrice?.toLocaleString() || '0'}</td>
+            <td><span class="status-badge status-${vendor.paymentStatus}">${vendor.paymentStatus}</span></td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-small btn-primary" onclick="editVendor('${vendor.vendorId}')">Edit</button>
+                    <button class="btn-small btn-danger" onclick="confirmDeleteVendor('${vendor.vendorId}')">Delete</button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Apply filters
+function applyFilters() {
+    const typeFilter = document.getElementById('type-filter').value;
+    const paymentFilter = document.getElementById('payment-filter').value;
+    const locationFilter = document.getElementById('location-filter').value;
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    
+    filteredVendors = currentVendors.filter(vendor => {
+        const matchesType = !typeFilter || vendor.vendorType === typeFilter;
+        const matchesPayment = !paymentFilter || vendor.paymentStatus === paymentFilter;
+        const matchesLocation = !locationFilter || vendor.boothLocation === locationFilter;
+        const matchesSearch = !searchTerm || 
+            vendor.businessName.toLowerCase().includes(searchTerm) ||
+            vendor.contactPerson.toLowerCase().includes(searchTerm) ||
+            vendor.email.toLowerCase().includes(searchTerm) ||
+            vendor.vendorId.toLowerCase().includes(searchTerm);
+        
+        return matchesType && matchesPayment && matchesLocation && matchesSearch;
+    });
+    
+    currentPage = 1; // Reset to first page
+    updateVendorsTable();
+    updatePagination();
+}
+
+// Update pagination
+function updatePagination() {
+    const totalPages = Math.ceil(filteredVendors.length / itemsPerPage);
+    const paginationContainer = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        paginationContainer.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = '';
+    
+    // Previous button
+    if (currentPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">Previous</button>`;
+    }
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+            paginationHTML += `<button class="pagination-btn active">${i}</button>`;
+        } else if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            paginationHTML += `<button class="pagination-btn" onclick="changePage(${i})">${i}</button>`;
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+            paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+        }
+    }
+    
+    // Next button
+    if (currentPage < totalPages) {
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">Next</button>`;
+    }
+    
+    paginationContainer.innerHTML = paginationHTML;
+}
+
+// Change page
+function changePage(page) {
+    currentPage = page;
+    updateVendorsTable();
+    updatePagination();
+}
+
+// Open add vendor modal
+function openAddVendorModal() {
+    isEditing = false;
+    editingVendorId = null;
+    document.getElementById('modal-title').textContent = 'Add Vendor';
+    document.getElementById('vendor-form').reset();
+    document.getElementById('vendor-modal').style.display = 'block';
+}
+
+// Edit vendor
+function editVendor(vendorId) {
+    const vendor = currentVendors.find(v => v.vendorId === vendorId);
+    if (!vendor) return;
+    
+    isEditing = true;
+    editingVendorId = vendorId;
+    document.getElementById('modal-title').textContent = 'Edit Vendor';
+    
+    // Populate form
+    const form = document.getElementById('vendor-form');
+    form.businessName.value = vendor.businessName || '';
+    form.contactPerson.value = vendor.contactPerson || '';
+    form.email.value = vendor.email || '';
+    form.phone.value = vendor.phone || '';
+    form.vendorType.value = vendor.vendorType || '';
+    form.boothLocation.value = vendor.boothLocation || '';
+    form.website.value = vendor.website || '';
+    form.paymentMethod.value = vendor.paymentMethod || '';
+    form.address.value = vendor.address || '';
+    form.businessDescription.value = vendor.businessDescription || '';
+    form.requiresElectricity.checked = vendor.requiresElectricity || false;
+    form.requiresWater.checked = vendor.requiresWater || false;
+    form.specialRequirements.value = vendor.specialRequirements || '';
+    form.comments.value = vendor.comments || '';
+    
+    document.getElementById('vendor-modal').style.display = 'block';
+}
+
+// Handle form submission
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const vendorData = Object.fromEntries(formData.entries());
+    
+    // Convert checkboxes
+    vendorData.requiresElectricity = formData.has('requiresElectricity');
+    vendorData.requiresWater = formData.has('requiresWater');
+    
+    // Set booth price based on location
+    const boothPricing = {
+        'back': 750,
+        'central': 1100,
+        'side_corner': 1400,
+        'front_corner': 1600
+    };
+    vendorData.boothPrice = boothPricing[vendorData.boothLocation] || 0;
+    
+    try {
+        showLoading();
+        
+        const url = isEditing ? `/api/vendors/${editingVendorId}` : '/api/vendors';
+        const method = isEditing ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(vendorData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(isEditing ? 'Vendor updated successfully' : 'Vendor created successfully', 'success');
+            closeModal();
+            loadVendors();
+        } else {
+            showToast(result.message || 'Failed to save vendor', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving vendor:', error);
+        showToast('Error saving vendor', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Confirm delete vendor
+function confirmDeleteVendor(vendorId) {
+    editingVendorId = vendorId;
+    document.getElementById('delete-modal').style.display = 'block';
+}
+
+// Handle delete
+async function handleDelete() {
+    try {
+        showLoading();
+        
+        const response = await fetch(`/api/vendors/${editingVendorId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Vendor deleted successfully', 'success');
+            closeDeleteModal();
+            loadVendors();
+        } else {
+            showToast(result.message || 'Failed to delete vendor', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting vendor:', error);
+        showToast('Error deleting vendor', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Close modal
+function closeModal() {
+    document.getElementById('vendor-modal').style.display = 'none';
+    isEditing = false;
+    editingVendorId = null;
+}
+
+// Close delete modal
+function closeDeleteModal() {
+    document.getElementById('delete-modal').style.display = 'none';
+    editingVendorId = null;
+}
+
+// Export vendors
+function exportVendors() {
+    const csvContent = generateVendorsCSV(filteredVendors);
+    downloadCSV(csvContent, 'vendors.csv');
+}
+
+// Generate CSV content
+function generateVendorsCSV(vendors) {
+    const headers = [
+        'Vendor ID', 'Business Name', 'Contact Person', 'Email', 'Phone', 
+        'Vendor Type', 'Booth Location', 'Booth Price', 'Payment Method', 
+        'Payment Status', 'Address', 'Website', 'Business Description',
+        'Requires Electricity', 'Requires Water', 'Special Requirements'
+    ];
+    
+    const rows = vendors.map(vendor => [
+        vendor.vendorId,
+        vendor.businessName,
+        vendor.contactPerson,
+        vendor.email,
+        vendor.phone,
+        formatVendorType(vendor.vendorType),
+        formatBoothLocation(vendor.boothLocation),
+        vendor.boothPrice,
+        vendor.paymentMethod,
+        vendor.paymentStatus,
+        vendor.address,
+        vendor.website,
+        vendor.businessDescription,
+        vendor.requiresElectricity ? 'Yes' : 'No',
+        vendor.requiresWater ? 'Yes' : 'No',
+        vendor.specialRequirements
+    ]);
+    
+    return [headers, ...rows]
+        .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+}
+
+// Utility functions
+function formatVendorType(type) {
+    const typeMap = {
+        'food': 'Food & Beverages',
+        'clothing': 'Clothing & Apparel',
+        'accessories': 'Accessories',
+        'books': 'Books & Education',
+        'toys': 'Toys & Games',
+        'sports': 'Sports & Fitness',
+        'services': 'Services',
+        'other': 'Other'
+    };
+    return typeMap[type] || type;
+}
+
+function formatBoothLocation(location) {
+    const locationMap = {
+        'back': 'Back Area',
+        'central': 'Central Aisle',
+        'side_corner': 'Side Corner',
+        'front_corner': 'Front Corner'
+    };
+    return locationMap[location] || location;
+}
+
+function downloadCSV(csvContent, filename) {
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+function showLoading() {
+    // Show loading state
+    const table = document.getElementById('vendors-table-body');
+    table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+}
+
+function hideLoading() {
+    // Loading will be hidden when table is updated
+}
+
+function showToast(message, type) {
+    // Use the dashboard utility function
+    if (window.dashboardUtils && window.dashboardUtils.showToast) {
+        window.dashboardUtils.showToast(message, type);
+    } else {
+        alert(message);
+    }
+}
