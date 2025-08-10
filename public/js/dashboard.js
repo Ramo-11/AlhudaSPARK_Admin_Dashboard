@@ -37,20 +37,23 @@ async function loadDashboardStats() {
 // Update stats display
 function updateStatsDisplay(data) {
     // Update vendors stats
-    document.getElementById('vendors-count').textContent = data.vendors?.total || 0;
-    document.getElementById('active-vendors').textContent = data.vendors?.active || 0;
+    const vendorsCount = document.getElementById('vendors-count');
+    const activeVendors = document.getElementById('active-vendors');
+    const teamsCount = document.getElementById('teams-count');
+    const approvedTeams = document.getElementById('approved-teams');
+    const sponsorsCount = document.getElementById('sponsors-count');
+    const activeSponsors = document.getElementById('active-sponsors');
+    const revenueCount = document.getElementById('revenue-count');
+    const pendingPayments = document.getElementById('pending-payments');
     
-    // Update teams stats
-    document.getElementById('teams-count').textContent = data.teams?.total || 0;
-    document.getElementById('approved-teams').textContent = data.teams?.approved || 0;
-    
-    // Update sponsors stats
-    document.getElementById('sponsors-count').textContent = data.sponsors?.total || 0;
-    document.getElementById('active-sponsors').textContent = data.sponsors?.active || 0;
-    
-    // Update revenue stats
-    document.getElementById('revenue-count').textContent = formatCurrency(data.revenue?.total || 0);
-    document.getElementById('pending-payments').textContent = data.revenue?.pending || 0;
+    if (vendorsCount) vendorsCount.textContent = data.vendors?.total || 0;
+    if (activeVendors) activeVendors.textContent = data.vendors?.active || 0;
+    if (teamsCount) teamsCount.textContent = data.teams?.total || 0;
+    if (approvedTeams) approvedTeams.textContent = data.teams?.approved || 0;
+    if (sponsorsCount) sponsorsCount.textContent = data.sponsors?.total || 0;
+    if (activeSponsors) activeSponsors.textContent = data.sponsors?.active || 0;
+    if (revenueCount) revenueCount.textContent = formatCurrency(data.revenue?.total || 0);
+    if (pendingPayments) pendingPayments.textContent = data.revenue?.pending || 0;
 }
 
 // Load recent activity
@@ -66,14 +69,21 @@ async function loadRecentActivity() {
         }
     } catch (error) {
         console.error('Error loading activity:', error);
-        document.getElementById('activity-list').innerHTML = 
-            '<p>Unable to load recent activity</p>';
+        const activityList = document.getElementById('activity-list');
+        if (activityList) {
+            activityList.innerHTML = '<p>Unable to load recent activity</p>';
+        }
     }
 }
 
 // Update activity display
 function updateActivityDisplay(activities) {
     const activityList = document.getElementById('activity-list');
+    
+    if (!activityList) {
+        console.error('Activity list element not found');
+        return;
+    }
     
     if (!activities || activities.length === 0) {
         activityList.innerHTML = '<p>No recent activity</p>';

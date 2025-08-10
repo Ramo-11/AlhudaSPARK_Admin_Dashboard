@@ -1,90 +1,84 @@
-const express = require("express")
-const route = express.Router()
-require("dotenv").config()
+// router.js
+const express = require("express");
+const route = express.Router();
+const Vendor = require("../models/Vendor");
+const Team = require("../models/Team");
+const Sponsor = require("../models/Sponsor");
+const vendors = require("./vendorsController");
+const teams = require("./teamsController");
+const sponsors = require("./sponsorsController");
 
-const {
-    getEvents,
-    getEventStats,
-    getUpcomingEvents,
-    getFeaturedEvents,
-    getEventsByCategory,
-    getEventById,
-    getEventBySlug,
-    createEvent,
-    updateEvent,
-    toggleEventStatus,
-    restoreEvent,
-    deleteEvent,
-    permanentDeleteEvent,
-    duplicateEvent
-} = require("./eventController")
+// Pages
+route.get("/", (req,res)=>res.render("dashboard"));
+route.get("/vendors", (req,res)=>res.render("vendors"));
+route.get("/teams", (req,res)=>res.render("teams"));
+route.get("/sponsors", (req,res)=>res.render("sponsors"));
 
-// Import Cloudinary handler
-const { 
-    upload, 
-    handleImageUpload, 
-    handleMultipleImageUpload, 
-    handleImageDeletion, 
-    handleMulterError 
-} = require("./cloudinaryHandler")
-
-const Event = require("../models/Event")
-
-// *********** GET requests **********
-// Updated main route to fetch data for the dashboard
-route.get("/", async (req, res) => {
-    try {
-        // Fetch events
-        const events = await Event.find({ isArchived: { $ne: true } })
-            .populate('speakers', 'name title organization')
-            .sort({ eventDate: -1 });
-
-        // Calculate stats
-        const stats = {
-            total: events.length,
-            published: events.filter(e => e.status === 'published').length,
-            upcoming: events.filter(e => e.status === 'published' && new Date(e.eventDate) > new Date()).length,
-            draft: events.filter(e => e.status === 'draft').length
-        };
-
-        res.render("index", { events, stats });
-    } catch (error) {
-        console.error('Error loading dashboard:', error);
-        // Render with empty data if there's an error
-        res.render("index", { 
-            events: [], 
-            stats: { total: 0, published: 0, upcoming: 0, draft: 0 } 
-        });
-    }
+// Dashboard API
+route.get("/api/dashboard/stats", async (req,res)=>{
+  try{
+    const [vTotal,vActive] = await Promise.all([
+      Vendor.countDocuments({}), Vendor.countDocuments({isActive:true})
+    ]);
+    const [tTotal,tApproved] = await Promise.all([
+      Team.countDocuments({}), Team.countDocuments({registrationStatus:"approved"})
+    ]);
+    const [sTotal,sActive] = await Promise.all([
+      Sponsor.countDocuments({}), Sponsor.countDocuments({isActive:true})
+    ]);
+    const vendRev = await Vendor.aggregate([{ $match:{paymentStatus:"completed"} },{ $group:{_id:0,sum:{$sum:"$boothPrice"}} }]);
+    const teamRev = await Team.aggregate([{ $match:{paymentStatus:"completed"} },{ $group:{_id:0,sum:{$sum:"$registrationFee"}} }]);
+    const sponRev = await Sponsor.aggregate([{ $match:{paymentStatus:"completed"} },{ $group:{_id:0,sum:{$sum:"$amount"}} }]);
+    const pending = await Promise.all([
+      Vendor.countDocuments({paymentStatus:"pending"}),
+      Team.countDocuments({paymentStatus:"pending"}),
+      Sponsor.countDocuments({paymentStatus:"pending"})
+    ]);
+    res.json({success:true,data:{
+      vendors:{total:vTotal,active:vActive},
+      teams:{total:tTotal,approved:tApproved},
+      sponsors:{total:sTotal,active:sActive},
+      revenue:{total:(vendRev[0]?.sum||0)+(teamRev[0]?.sum||0)+(sponRev[0]?.sum||0),pending: pending.reduce((a,b)=>a+b,0)}
+    }});
+  }catch(e){res.json({success:false,message:"Stats error"});}
 });
 
-route.get("/api/events", getEvents)
-route.get("/api/events/stats", getEventStats)
-route.get("/api/events/upcoming", getUpcomingEvents)
-route.get("/api/events/featured", getFeaturedEvents)
-route.get("/api/events/category/:category", getEventsByCategory)
-route.get("/api/events/:id", getEventById)
-route.get("/api/events/slug/:slug", getEventBySlug)
+route.get("/api/dashboard/activity", async (req,res)=>{
+  try{
+    const limit=10;
+    const map = (doc,type,title)=>doc && ({type,title, timestamp:doc.createdAt});
+    const [v,t,s]=await Promise.all([
+      Vendor.find({}).sort("-createdAt").limit(limit),
+      Team.find({}).sort("-createdAt").limit(limit),
+      Sponsor.find({}).sort("-createdAt").limit(limit)
+    ]);
+    const items=[
+      ...v.map(x=>map(x,"vendor",`Vendor: ${x.businessName}`)),
+      ...t.map(x=>map(x,"team",`Team: ${x.teamName}`)),
+      ...s.map(x=>map(x,"sponsor",`Sponsor: ${x.companyName}`))
+    ].filter(Boolean).sort((a,b)=>b.timestamp-a.timestamp).slice(0,limit);
+    res.json({success:true,data:items});
+  }catch(e){res.json({success:false,message:"Activity error"});}
+});
 
-// *********** POST requests **********
-route.post("/api/events", createEvent)
-route.post("/api/events/:id/duplicate", duplicateEvent)
+// Vendors
+route.get("/api/vendors", vendors.getAll);
+route.post("/api/vendors", vendors.create);
+route.put("/api/vendors/:id", vendors.update);
+route.delete("/api/vendors/:id", vendors.remove);
 
-// Image upload routes
-route.post('/api/upload/image', upload.single('image'), handleImageUpload)
-route.post('/api/upload/images', upload.array('images', 10), handleMultipleImageUpload)
+// Teams
+route.get("/api/teams", teams.getAll);
+route.post("/api/teams", teams.create);
+route.put("/api/teams/:id", teams.update);
+route.patch("/api/teams/:id/status", teams.updateStatus);
+route.delete("/api/teams/:id", teams.remove);
 
-// *********** PUT requests **********
-route.put("/api/events/:id", updateEvent)
-route.put("/api/events/:id/status", toggleEventStatus)
-route.put("/api/events/:id/restore", restoreEvent)
+// Sponsors
+route.get("/api/sponsors", sponsors.getAll);
+route.post("/api/sponsors", sponsors.create);
+route.put("/api/sponsors/:id", sponsors.update);
+route.patch("/api/sponsors/:id/benefits", sponsors.updateBenefits);
+route.delete("/api/sponsors/:id", sponsors.remove);
 
-// *********** DELETE requests **********
-route.delete("/api/events/:id", deleteEvent)
-route.delete("/api/events/:id/permanent", permanentDeleteEvent)
-route.delete("/api/upload/image/:publicId", handleImageDeletion)
-
-// Error handling middleware (should be last)
-route.use(handleMulterError)
-
-module.exports = route
+module.exports = route;

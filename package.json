@@ -1,7 +1,7 @@
 {
-  "name": "MAS-Admin-Dashboard",
+  "name": "AlhudaSpark-Admin-Dashboard",
   "version": "1.0.0",
-  "description": "website for MAS Admin Dashboard",
+  "description": "website for AlhudaSpark Admin Dashboard",
   "main": "app.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon app.js",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ramo-11/mas-admin-dashboard.git"
+    "url": "https://github.com/Ramo-11/AlhudaSpark-admin-dashboard.git"
   },
   "engine": {
     "node": ">=24.0.0"
