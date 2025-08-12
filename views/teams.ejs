@@ -159,9 +159,9 @@
                         <label class="form-label">Tier *</label>
                         <select name="tier" class="form-select" required>
                             <option value="">Select Tier</option>
-                            <option value="elementary">Elementary School ($150)</option>
-                            <option value="middle">Middle School ($200)</option>
-                            <option value="high_school">High School ($250)</option>
+                            <option value="elementary">Elementary School</option>
+                            <option value="middle">Middle School</option>
+                            <option value="high_school">High School</option>
                         </select>
                     </div>
                     
@@ -266,8 +266,12 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">ID Photo *</label>
-                    <input type="file" name="idPhoto" class="form-input" accept="image/*" required>
+                    <label class="form-label">ID Photo <span class="id-photo-required" style="display: none;">*</span></label>
+                    <input type="file" name="idPhoto" class="form-input id-photo-input" accept="image/*">
+                    <div class="existing-photo" style="display: none; margin-top: 0.5rem;">
+                        <img class="photo-thumbnail" src="" alt="Player ID" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                        <button type="button" class="btn-small btn-secondary view-photo-btn" style="margin-left: 0.5rem;">View Full</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -315,6 +319,48 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancel-status">Cancel</button>
                 <button type="button" class="btn btn-primary" id="confirm-status">Update Status</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Status Modal -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Update Payment Status</h2>
+                <button class="close-btn" id="close-payment-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Payment Status</label>
+                    <select id="new-payment-status" class="form-select">
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Method</label>
+                    <select id="payment-method" class="form-select">
+                        <option value="">Select Method</option>
+                        <option value="check">Check</option>
+                        <option value="cash">Cash</option>
+                        <option value="zelle">Zelle</option>
+                        <option value="venmo">Venmo</option>
+                        <option value="stripe">Stripe</option>
+                        <option value="zeffy">Zeffy</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Transaction ID</label>
+                    <input type="text" id="transaction-id" class="form-input" placeholder="Optional transaction reference">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-payment">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-payment">Update Payment</button>
             </div>
         </div>
     </div>

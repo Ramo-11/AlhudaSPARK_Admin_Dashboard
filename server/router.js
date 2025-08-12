@@ -8,6 +8,14 @@ const vendors = require("./vendorsController");
 const teams = require("./teamsController");
 const sponsors = require("./sponsorsController");
 
+const { 
+    upload, 
+    handleImageUpload, 
+    handleMultipleImageUpload, 
+    handleImageDeletion, 
+    handleMulterError 
+} = require("./cloudinaryController")
+
 // Pages
 route.get("/", (req,res)=>res.render("dashboard"));
 route.get("/vendors", (req,res)=>res.render("vendors"));
@@ -69,9 +77,10 @@ route.delete("/api/vendors/:id", vendors.remove);
 
 // Teams
 route.get("/api/teams", teams.getAll);
-route.post("/api/teams", teams.create);
-route.put("/api/teams/:id", teams.update);
+route.post("/api/teams", upload.any(), teams.create, handleMulterError);
+route.put("/api/teams/:id", upload.any(), teams.update, handleMulterError);
 route.patch("/api/teams/:id/status", teams.updateStatus);
+route.patch("/api/teams/:id/payment", teams.updatePayment);
 route.delete("/api/teams/:id", teams.remove);
 
 // Sponsors
@@ -80,5 +89,6 @@ route.post("/api/sponsors", sponsors.create);
 route.put("/api/sponsors/:id", sponsors.update);
 route.patch("/api/sponsors/:id/benefits", sponsors.updateBenefits);
 route.delete("/api/sponsors/:id", sponsors.remove);
+route.patch("/api/sponsors/:id/payment", sponsors.updatePayment);
 
 module.exports = route;

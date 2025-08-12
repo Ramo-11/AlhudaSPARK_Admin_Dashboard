@@ -28,6 +28,31 @@ exports.update = async (req,res)=>{
   }catch(e){res.json({success:false,message:"Update failed"});}
 };
 
+exports.updatePayment = async (req, res) => {
+  try {
+    const { paymentStatus, transactionId } = req.body;
+    const updateData = { paymentStatus };
+    
+    if (transactionId) {
+      updateData.transactionId = transactionId;
+    }
+    
+    if (paymentStatus === 'completed') {
+      updateData.paymentDate = new Date();
+    }
+    
+    const data = await Sponsor.findOneAndUpdate(
+      { sponsorId: req.params.id },
+      updateData,
+      { new: true }
+    );
+    
+    res.json({ success: true, data });
+  } catch (e) {
+    res.json({ success: false, message: "Payment update failed" });
+  }
+};
+
 exports.updateBenefits = async (req,res)=>{
   try{
     const data = await Sponsor.findOneAndUpdate(

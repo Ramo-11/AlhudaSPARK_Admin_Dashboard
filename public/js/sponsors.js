@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initSponsorsPage() {
     loadSponsors();
     setupEventListeners();
+    initPaymentModal();
 }
 
 // Setup event listeners
@@ -28,6 +29,8 @@ function setupEventListeners() {
     document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
     document.getElementById('close-benefits-modal').addEventListener('click', closeBenefitsModal);
     document.getElementById('cancel-benefits').addEventListener('click', closeBenefitsModal);
+    document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
+    document.getElementById('cancel-payment').addEventListener('click', closePaymentModal);
     
     // Form submission
     document.getElementById('sponsor-form').addEventListener('submit', handleFormSubmit);
@@ -60,6 +63,10 @@ function setupEventListeners() {
     
     document.getElementById('benefits-modal').addEventListener('click', function(e) {
         if (e.target === this) closeBenefitsModal();
+    });
+
+    document.getElementById('payment-modal').addEventListener('click', function(e) {
+        if (e.target === this) closePaymentModal();
     });
 }
 
@@ -142,6 +149,7 @@ function updateSponsorsTable() {
             <td>
                 <div class="action-buttons">
                     <button class="btn-small btn-primary" onclick="editSponsor('${sponsor.sponsorId}')">Edit</button>
+                    <button class="btn btn-sm btn-warning payment-btn" data-sponsor-id="${sponsor.sponsorId}" data-sponsor-name="${sponsor.companyName}" data-current-status="${sponsor.paymentStatus}">Payment</button>
                     ${!sponsor.benefitsSent && sponsor.paymentStatus === 'completed' ? 
                         `<button class="btn-small btn-secondary" onclick="markBenefitsSent('${sponsor.sponsorId}')">Benefits</button>` : ''}
                     <button class="btn-small btn-danger" onclick="confirmDeleteSponsor('${sponsor.sponsorId}')">Delete</button>
@@ -259,10 +267,10 @@ function updateMinimumAmount() {
     const selectedTier = tierSelect.value;
     
     const minimumAmounts = {
-        'diamond': 5000,
-        'platinum': 2500,
-        'gold': 1000,
-        'silver': 500
+        'diamond': 10000,
+        'platinum': 5000,
+        'gold': 2500,
+        'silver': 1000
     };
     
     if (selectedTier && minimumAmounts[selectedTier]) {
@@ -286,10 +294,10 @@ function validateAmount() {
     if (!amount || !tier) return;
     
     const minimumAmounts = {
-        'diamond': 5000,
-        'platinum': 2500,
-        'gold': 1000,
-        'silver': 500
+        'diamond': 10000,
+        'platinum': 5000,
+        'gold': 2500,
+        'silver': 1000
     };
     
     if (amount < minimumAmounts[tier]) {
@@ -338,6 +346,82 @@ async function handleFormSubmit(e) {
     } finally {
         hideLoading();
     }
+}
+
+// Payment modal functionality
+function initPaymentModal() {
+    const modal = document.getElementById('payment-modal');
+    const closeBtn = document.getElementById('close-payment-modal');
+    const cancelBtn = document.getElementById('cancel-payment');
+    const confirmBtn = document.getElementById('confirm-payment');
+    
+    let currentSponsorId = null;
+    
+    // Open payment modal
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('payment-btn')) {
+            const sponsorId = e.target.dataset.sponsorId;
+            const sponsorName = e.target.dataset.sponsorName;
+            const currentStatus = e.target.dataset.currentStatus;
+            
+            currentSponsorId = sponsorId;
+            document.getElementById('payment-sponsor-name').textContent = sponsorName;
+            document.getElementById('payment-status-select').value = currentStatus;
+            document.getElementById('payment-transaction-id').value = '';
+            
+            modal.style.display = 'block';
+        }
+    });
+    
+    // Close modal handlers
+    [closeBtn, cancelBtn].forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            currentSponsorId = null;
+        });
+    });
+    
+    // Update payment status
+    confirmBtn.addEventListener('click', async () => {
+        if (!currentSponsorId) return;
+        
+        const paymentStatus = document.getElementById('payment-status-select').value;
+        const transactionId = document.getElementById('payment-transaction-id').value;
+        
+        try {
+            showLoading();
+            
+            const response = await fetch(`/api/sponsors/${currentSponsorId}/payment`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ paymentStatus, transactionId })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                modal.style.display = 'none';
+                loadSponsors(); // Refresh the table
+                showToast('Payment status updated successfully', 'success');
+            } else {
+                showToast('Failed to update payment status', 'error');
+            }
+        } catch (error) {
+            showToast('Error updating payment status', 'error');
+        } finally {
+            hideLoading();
+        }
+        
+        currentSponsorId = null;
+    });
+    
+    // Close on outside click
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            currentSponsorId = null;
+        }
+    });
 }
 
 // Mark benefits as sent
@@ -433,6 +517,10 @@ function closeDeleteModal() {
 function closeBenefitsModal() {
     document.getElementById('benefits-modal').style.display = 'none';
     editingSponsorId = null;
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').style.display = 'none';
 }
 
 // Export sponsors

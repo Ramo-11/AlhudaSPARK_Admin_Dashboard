@@ -30,13 +30,16 @@ function setupEventListeners() {
     document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
     document.getElementById('close-status-modal').addEventListener('click', closeStatusModal);
     document.getElementById('cancel-status').addEventListener('click', closeStatusModal);
+    document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
+    document.getElementById('cancel-payment').addEventListener('click', closePaymentModal);
     
     // Form submission
     document.getElementById('team-form').addEventListener('submit', handleFormSubmit);
     
-    // Delete and status confirmation
+    // Delete, status and payment confirmation
     document.getElementById('confirm-delete').addEventListener('click', handleDelete);
     document.getElementById('confirm-status').addEventListener('click', handleStatusUpdate);
+    document.getElementById('confirm-payment').addEventListener('click', handlePaymentUpdate);
     
     // Filters
     document.getElementById('tier-filter').addEventListener('change', applyFilters);
@@ -51,8 +54,18 @@ function setupEventListeners() {
     // Player management
     document.getElementById('add-player-btn').addEventListener('click', addPlayerForm);
     
-    // Tier change - update registration fee
-    document.querySelector('select[name="tier"]').addEventListener('change', updateRegistrationFee);
+    // Tier change - update registration fee and photo requirements
+    document.querySelector('select[name="tier"]').addEventListener('change', function() {
+        updateRegistrationFee();
+        updateIdPhotoRequirement();
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('view-ids-btn')) {
+            const teamId = e.target.dataset.teamId;
+            showTeamIDsModal(teamId);
+        }
+    });
     
     // Modal backdrop clicks
     document.getElementById('team-modal').addEventListener('click', function(e) {
@@ -66,14 +79,18 @@ function setupEventListeners() {
     document.getElementById('status-modal').addEventListener('click', function(e) {
         if (e.target === this) closeStatusModal();
     });
+    
+    document.getElementById('payment-modal').addEventListener('click', function(e) {
+        if (e.target === this) closePaymentModal();
+    });
 }
 
 // Setup registration fees display
 function setupRegistrationFees() {
     const registrationFees = {
-        'elementary': 150,
-        'middle': 200,
-        'high_school': 250
+        'elementary': 350,
+        'middle': 350,
+        'high_school': 350
     };
     
     const tierSelect = document.querySelector('select[name="tier"]');
@@ -93,9 +110,9 @@ function updateRegistrationFee() {
     const selectedTier = tierSelect.value;
     
     const registrationFees = {
-        'elementary': 150,
-        'middle': 200,
-        'high_school': 250
+        'elementary': 350,
+        'middle': 350,
+        'high_school': 350
     };
     
     console.log('Selected tier:', selectedTier, 'Fee:', registrationFees[selectedTier] || 0);
@@ -158,8 +175,10 @@ function updateTeamsTable() {
             </td>
             <td>
                 <div class="action-buttons">
+                <button class="btn-small btn-info view-ids-btn" data-team-id="${team.teamId}">View IDs</button>
                     <button class="btn-small btn-primary" onclick="editTeam('${team.teamId}')">Edit</button>
                     <button class="btn-small btn-secondary" onclick="updateTeamStatus('${team.teamId}')">Status</button>
+                    <button class="btn-small btn-secondary" onclick="updatePaymentStatus('${team.teamId}')">Payment</button>
                     <button class="btn-small btn-danger" onclick="confirmDeleteTeam('${team.teamId}')">Delete</button>
                 </div>
             </td>
@@ -284,6 +303,9 @@ function addPlayerForm() {
         });
     }
     
+    // Update ID photo requirement based on current tier
+    updateIdPhotoRequirement(playerForm);
+    
     document.getElementById('players-container').appendChild(playerForm);
 }
 
@@ -345,12 +367,37 @@ function editTeam(teamId) {
     document.getElementById('players-container').innerHTML = '';
     
     if (team.players && team.players.length > 0) {
-        team.players.forEach(player => {
+        team.players.forEach((player, index) => {
             addPlayerForm();
             const playerForm = document.querySelector('.player-form:last-child');
             playerForm.querySelector('input[name^="playerName"]').value = player.playerName || '';
             playerForm.querySelector('input[name^="dateOfBirth"]').value = 
                 player.dateOfBirth ? new Date(player.dateOfBirth).toISOString().split('T')[0] : '';
+            
+            // Show existing photo if available
+            if (player.idPhotoUrl) {
+                const existingPhotoDiv = playerForm.querySelector('.existing-photo');
+                const thumbnail = playerForm.querySelector('.photo-thumbnail');
+                const viewBtn = playerForm.querySelector('.view-photo-btn');
+                const fileInput = playerForm.querySelector('.id-photo-input');
+                
+                if (existingPhotoDiv && thumbnail && viewBtn) {
+                    thumbnail.src = player.idPhotoUrl;
+                    existingPhotoDiv.style.display = 'block';
+                    viewBtn.onclick = () => viewPhoto(player.idPhotoUrl, player.playerName);
+
+                    const fileInput = playerForm.querySelector('.id-photo-input');
+                    fileInput.required = false; // <-- important
+                    
+                    // Add text to show existing file
+                    const existingText = document.createElement('small');
+                    existingText.style.color = '#28a745';
+                    existingText.style.display = 'block';
+                    existingText.style.marginTop = '0.25rem';
+                    existingText.textContent = `✓ Current: ${player.idPhotoOriginalName || 'ID Photo uploaded'}`;
+                    fileInput.parentNode.insertBefore(existingText, existingPhotoDiv);
+                }
+            }
         });
     } else {
         // Add default 5 players for editing
@@ -366,75 +413,65 @@ function editTeam(teamId) {
 async function handleFormSubmit(e) {
     e.preventDefault();
     
+    // Use FormData to handle file uploads
     const formData = new FormData(e.target);
-    const teamData = {};
     
-    // Extract basic team data
-    teamData.teamName = formData.get('teamName');
-    teamData.organization = formData.get('organization');
-    teamData.city = formData.get('city');
-    teamData.tier = formData.get('tier');
-    teamData.gender = formData.get('gender');
-    teamData.coachName = formData.get('coachName');
-    teamData.coachEmail = formData.get('coachEmail');
-    teamData.coachPhone = formData.get('coachPhone');
-    teamData.specialRequirements = formData.get('specialRequirements');
-    teamData.comments = formData.get('comments');
-    
-    // Emergency contact
-    teamData.emergencyContact = {
-        name: formData.get('emergencyContactName'),
-        phone: formData.get('emergencyContactPhone'),
-        relationship: formData.get('emergencyContactRelationship')
-    };
-    
-    // Set registration fee based on tier
-    const registrationFees = {
-        'elementary': 150,
-        'middle': 200,
-        'high_school': 250
-    };
-    teamData.registrationFee = registrationFees[teamData.tier] || 0;
-    
-    // Extract player data
-    teamData.players = [];
+    // Add player data in the format expected by the backend
+    const players = [];
     for (let i = 1; i <= playerCount; i++) {
         const playerName = formData.get(`playerName_${i}`);
         const dateOfBirth = formData.get(`dateOfBirth_${i}`);
-        const idPhoto = formData.get(`idPhoto_${i}`);
         
         if (playerName && dateOfBirth) {
-            const player = {
+            players.push({
                 playerName,
                 dateOfBirth,
                 ageAtRegistration: calculateAge(new Date(dateOfBirth))
-            };
+            });
             
-            // Handle file upload for editing (simplified for demo)
+            // Handle file upload for this player
+            const idPhoto = formData.get(`idPhoto_${i}`);
             if (idPhoto && idPhoto.size > 0) {
-                player.idPhotoUrl = `uploads/${Date.now()}_${idPhoto.name}`;
-                player.idPhotoOriginalName = idPhoto.name;
-            } else if (isEditing) {
-                // Keep existing photo data if editing
-                const existingTeam = currentTeams.find(t => t.teamId === editingTeamId);
-                const existingPlayer = existingTeam?.players?.[i - 1];
-                if (existingPlayer) {
-                    player.idPhotoUrl = existingPlayer.idPhotoUrl;
-                    player.idPhotoOriginalName = existingPlayer.idPhotoOriginalName;
-                }
+                formData.append(`players[${i - 1}][idPhoto]`, idPhoto);
             }
-            
-            teamData.players.push(player);
+        }
+    }
+
+    // Remove old player file inputs
+    for (let i = 1; i <= playerCount; i++) {
+        formData.delete(`idPhoto_${i}`);
+    }
+
+    formData.append('players', JSON.stringify(players));
+
+    players.forEach((player, index) => {
+        formData.delete(`players[${index}][playerName]`);
+        formData.delete(`players[${index}][dateOfBirth]`);
+        formData.delete(`players[${index}][ageAtRegistration]`);
+    });
+    
+    // Validate ID photos for high school tier
+    if (formData.get('tier') === 'high_school') {
+        const missingIds = players.filter((player, index) => {
+            const hasNewFile = formData.get(`players[${index}][idPhoto]`);
+            const existingPlayer = isEditing ? currentTeams.find(t => t.teamId === editingTeamId)?.players?.[index] : null;
+            const hasExistingPhoto = existingPlayer?.idPhotoUrl;
+            return !hasNewFile && !hasExistingPhoto;
+        });
+        
+        if (missingIds.length > 0) {
+            showToast('ID photos are required for all high school players', 'error');
+            return;
         }
     }
     
     // Validate player count
-    if (teamData.players.length < 5) {
-        showToast('Team must have at least 5 players', 'error');
+    if (players.length < 1) {
+        showToast('Team must have at least 1 player', 'error');
         return;
     }
     
-    if (teamData.players.length > 10) {
+    if (players.length > 10) {
         showToast('Team cannot have more than 10 players', 'error');
         return;
     }
@@ -447,10 +484,7 @@ async function handleFormSubmit(e) {
         
         const response = await fetch(url, {
             method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(teamData)
+            body: formData // Send FormData instead of JSON
         });
         
         const result = await response.json();
@@ -672,4 +706,152 @@ function showToast(message, type) {
     } else {
         alert(message);
     }
+}
+
+// Update payment status
+function updatePaymentStatus(teamId) {
+    const team = currentTeams.find(t => t.teamId === teamId);
+    if (!team) return;
+    
+    editingTeamId = teamId;
+    document.getElementById('new-payment-status').value = team.paymentStatus || 'pending';
+    document.getElementById('payment-method').value = team.paymentMethod || '';
+    document.getElementById('transaction-id').value = team.transactionId || '';
+    document.getElementById('payment-modal').style.display = 'block';
+}
+
+// Handle payment status update
+async function handlePaymentUpdate() {
+    const paymentStatus = document.getElementById('new-payment-status').value;
+    const paymentMethod = document.getElementById('payment-method').value;
+    const transactionId = document.getElementById('transaction-id').value;
+    
+    try {
+        showLoading();
+        
+        const updateData = {
+            paymentStatus,
+            paymentMethod,
+            transactionId
+        };
+        
+        // Add payment date if marking as completed
+        if (paymentStatus === 'completed') {
+            updateData.paymentDate = new Date().toISOString();
+        }
+        
+        const response = await fetch(`/api/teams/${editingTeamId}/payment`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Payment status updated successfully', 'success');
+            closePaymentModal();
+            loadTeams();
+        } else {
+            showToast(result.message || 'Failed to update payment status', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        showToast('Error updating payment status', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').style.display = 'none';
+    editingTeamId = null;
+}
+
+// View photo in modal
+function viewPhoto(photoUrl, playerName) {
+    // Create a simple modal to display the photo
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${playerName} - ID Photo</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img src="${photoUrl}" alt="${playerName} ID" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.remove();
+    });
+}
+
+// Update ID photo requirements based on tier
+function updateIdPhotoRequirement(playerForm = null) {
+    const tierSelect = document.querySelector('select[name="tier"]');
+    const currentTier = tierSelect.value;
+    const isHighSchool = currentTier === 'high_school';
+    
+    const forms = playerForm ? [playerForm] : document.querySelectorAll('.player-form');
+    
+    forms.forEach(f => {
+        const hasExisting = f.querySelector('.existing-photo')?.style.display === 'block';
+        const reqMark = f.querySelector('.id-photo-required');
+        const input = f.querySelector('.id-photo-input');
+
+        if (reqMark) reqMark.style.display = isHighSchool && !hasExisting ? 'inline' : 'none';
+        if (input) input.required = isHighSchool && !hasExisting;
+    });
+}
+
+// Show team IDs modal
+function showTeamIDsModal(teamId) {
+    const team = currentTeams.find(t => t.teamId === teamId);
+    if (!team) return;
+    
+    const modalHTML = `
+        <div id="ids-modal" class="modal" style="display: flex;">
+            <div class="modal-content modal-lg">
+                <div class="modal-header">
+                    <h2>Player ID Photos - ${team.teamName}</h2>
+                    <button class="close-btn" onclick="closeIDsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="ids-grid">
+                        ${team.players.map((player, index) => `
+                            <div class="player-id-card">
+                                <h4>${player.playerName}</h4>
+                                ${player.idPhotoUrl ? 
+                                    `<img src="${player.idPhotoUrl}" alt="${player.playerName} ID" style="max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer;" onclick="openImageFullscreen('${player.idPhotoUrl}')">` :
+                                    '<p style="color: #666;">No ID photo uploaded</p>'
+                                }
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeIDsModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeIDsModal() {
+    const modal = document.getElementById('ids-modal');
+    if (modal) modal.remove();
+}
+
+function openImageFullscreen(imageUrl) {
+    window.open(imageUrl, '_blank');
 }
