@@ -85,9 +85,8 @@ route.delete("/api/teams/:id", teams.remove);
 
 // Sponsors
 route.get("/api/sponsors", sponsors.getAll);
-route.post("/api/sponsors", sponsors.create);
-route.put("/api/sponsors/:id", sponsors.update);
-route.patch("/api/sponsors/:id/benefits", sponsors.updateBenefits);
+route.post('/api/sponsors', upload.single('logo'), sponsors.create);
+route.put('/api/sponsors/:id', upload.single('logo'), sponsors.update);
 route.delete("/api/sponsors/:id", sponsors.remove);
 route.patch("/api/sponsors/:id/payment", sponsors.updatePayment);
 

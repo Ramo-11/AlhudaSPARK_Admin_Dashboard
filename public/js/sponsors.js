@@ -27,8 +27,6 @@ function setupEventListeners() {
     document.getElementById('cancel-btn').addEventListener('click', closeModal);
     document.getElementById('close-delete-modal').addEventListener('click', closeDeleteModal);
     document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
-    document.getElementById('close-benefits-modal').addEventListener('click', closeBenefitsModal);
-    document.getElementById('cancel-benefits').addEventListener('click', closeBenefitsModal);
     document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
     document.getElementById('cancel-payment').addEventListener('click', closePaymentModal);
     
@@ -37,12 +35,10 @@ function setupEventListeners() {
     
     // Delete and benefits confirmation
     document.getElementById('confirm-delete').addEventListener('click', handleDelete);
-    document.getElementById('confirm-benefits').addEventListener('click', handleBenefitsUpdate);
     
     // Filters
     document.getElementById('tier-filter').addEventListener('change', applyFilters);
     document.getElementById('payment-filter').addEventListener('change', applyFilters);
-    document.getElementById('benefits-filter').addEventListener('change', applyFilters);
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
     
     // Export button
@@ -60,13 +56,16 @@ function setupEventListeners() {
     document.getElementById('delete-modal').addEventListener('click', function(e) {
         if (e.target === this) closeDeleteModal();
     });
-    
-    document.getElementById('benefits-modal').addEventListener('click', function(e) {
-        if (e.target === this) closeBenefitsModal();
-    });
 
     document.getElementById('payment-modal').addEventListener('click', function(e) {
         if (e.target === this) closePaymentModal();
+    });
+
+    document.getElementById('view-logo-btn').addEventListener('click', function() {
+        const logoUrl = document.getElementById('logo-thumbnail').src;
+        if (logoUrl) {
+            window.open(logoUrl, '_blank');
+        }
     });
 }
 
@@ -135,23 +134,21 @@ function updateSponsorsTable() {
     
     tbody.innerHTML = paginatedSponsors.map(sponsor => `
         <tr>
+            <td>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    ${sponsor.logo ? `<img src="${sponsor.logo}" alt="${sponsor.companyName} logo" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px;" onerror="this.style.display='none'">` : ''}
+                    <strong>${sponsor.companyName}</strong>
+                </div>
+            </td>
             <td>${sponsor.sponsorId}</td>
-            <td><strong>${sponsor.companyName}</strong></td>
             <td>${sponsor.contactPerson}</td>
             <td><span class="tier-badge tier-${sponsor.tier}">${formatTier(sponsor.tier)}</span></td>
             <td>${sponsor.amount?.toLocaleString() || '0'}</td>
             <td><span class="status-badge status-${sponsor.paymentStatus}">${sponsor.paymentStatus}</span></td>
             <td>
-                <span class="status-badge status-benefits-${sponsor.benefitsSent ? 'sent' : 'pending'}">
-                    ${sponsor.benefitsSent ? 'Sent' : 'Pending'}
-                </span>
-            </td>
-            <td>
                 <div class="action-buttons">
                     <button class="btn-small btn-primary" onclick="editSponsor('${sponsor.sponsorId}')">Edit</button>
                     <button class="btn btn-sm btn-warning payment-btn" data-sponsor-id="${sponsor.sponsorId}" data-sponsor-name="${sponsor.companyName}" data-current-status="${sponsor.paymentStatus}">Payment</button>
-                    ${!sponsor.benefitsSent && sponsor.paymentStatus === 'completed' ? 
-                        `<button class="btn-small btn-secondary" onclick="markBenefitsSent('${sponsor.sponsorId}')">Benefits</button>` : ''}
                     <button class="btn-small btn-danger" onclick="confirmDeleteSponsor('${sponsor.sponsorId}')">Delete</button>
                 </div>
             </td>
@@ -163,22 +160,18 @@ function updateSponsorsTable() {
 function applyFilters() {
     const tierFilter = document.getElementById('tier-filter').value;
     const paymentFilter = document.getElementById('payment-filter').value;
-    const benefitsFilter = document.getElementById('benefits-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
     
     filteredSponsors = currentSponsors.filter(sponsor => {
         const matchesTier = !tierFilter || sponsor.tier === tierFilter;
         const matchesPayment = !paymentFilter || sponsor.paymentStatus === paymentFilter;
-        const matchesBenefits = !benefitsFilter || 
-            (benefitsFilter === 'sent' && sponsor.benefitsSent) ||
-            (benefitsFilter === 'pending' && !sponsor.benefitsSent);
         const matchesSearch = !searchTerm || 
             sponsor.companyName.toLowerCase().includes(searchTerm) ||
             sponsor.contactPerson.toLowerCase().includes(searchTerm) ||
             sponsor.email.toLowerCase().includes(searchTerm) ||
             sponsor.sponsorId.toLowerCase().includes(searchTerm);
         
-        return matchesTier && matchesPayment && matchesBenefits && matchesSearch;
+        return matchesTier && matchesPayment && matchesSearch;
     });
     
     currentPage = 1;
@@ -256,8 +249,18 @@ function editSponsor(sponsorId) {
     form.paymentMethod.value = sponsor.paymentMethod || '';
     form.address.value = sponsor.address || '';
     form.comments.value = sponsor.comments || '';
+
+    const currentLogoDiv = document.getElementById('current-logo');
+    const logoThumbnail = document.getElementById('logo-thumbnail');
+    if (sponsor.logo) {
+        logoThumbnail.src = sponsor.logo;
+        currentLogoDiv.style.display = 'block';
+    } else {
+        currentLogoDiv.style.display = 'none';
+    }
     
     document.getElementById('sponsor-modal').style.display = 'block';
+    
 }
 
 // Update minimum amount based on tier
@@ -312,10 +315,6 @@ async function handleFormSubmit(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const sponsorData = Object.fromEntries(formData.entries());
-    
-    // Convert amount to number
-    sponsorData.amount = parseFloat(sponsorData.amount);
     
     try {
         showLoading();
@@ -325,10 +324,7 @@ async function handleFormSubmit(e) {
         
         const response = await fetch(url, {
             method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(sponsorData)
+            body: formData 
         });
         
         const result = await response.json();
@@ -424,52 +420,6 @@ function initPaymentModal() {
     });
 }
 
-// Mark benefits as sent
-function markBenefitsSent(sponsorId) {
-    const sponsor = currentSponsors.find(s => s.sponsorId === sponsorId);
-    if (!sponsor) return;
-    
-    editingSponsorId = sponsorId;
-    document.getElementById('benefits-sponsor-name').textContent = sponsor.companyName;
-    document.getElementById('benefits-notes').value = '';
-    document.getElementById('benefits-modal').style.display = 'block';
-}
-
-// Handle benefits update
-async function handleBenefitsUpdate() {
-    const notes = document.getElementById('benefits-notes').value;
-    
-    try {
-        showLoading();
-        
-        const response = await fetch(`/api/sponsors/${editingSponsorId}/benefits`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                benefitsSent: true,
-                notes: notes
-            })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast('Benefits marked as sent', 'success');
-            closeBenefitsModal();
-            loadSponsors();
-        } else {
-            showToast(result.message || 'Failed to update benefits status', 'error');
-        }
-    } catch (error) {
-        console.error('Error updating benefits:', error);
-        showToast('Error updating benefits status', 'error');
-    } finally {
-        hideLoading();
-    }
-}
-
 // Confirm delete sponsor
 function confirmDeleteSponsor(sponsorId) {
     editingSponsorId = sponsorId;
@@ -514,11 +464,6 @@ function closeDeleteModal() {
     editingSponsorId = null;
 }
 
-function closeBenefitsModal() {
-    document.getElementById('benefits-modal').style.display = 'none';
-    editingSponsorId = null;
-}
-
 function closePaymentModal() {
     document.getElementById('payment-modal').style.display = 'none';
 }
@@ -533,7 +478,7 @@ function exportSponsors() {
 function generateSponsorsCSV(sponsors) {
     const headers = [
         'Sponsor ID', 'Company Name', 'Contact Person', 'Email', 'Phone',
-        'Tier', 'Amount', 'Payment Method', 'Payment Status', 'Benefits Sent',
+        'Tier', 'Amount', 'Payment Method', 'Payment Status',
         'Address', 'Website', 'Comments'
     ];
     
@@ -547,7 +492,6 @@ function generateSponsorsCSV(sponsors) {
         sponsor.amount,
         sponsor.paymentMethod,
         sponsor.paymentStatus,
-        sponsor.benefitsSent ? 'Yes' : 'No',
         sponsor.address,
         sponsor.website,
         sponsor.comments

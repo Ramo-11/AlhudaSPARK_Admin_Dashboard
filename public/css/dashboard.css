@@ -916,17 +916,6 @@ body {
     display: block;
 }
 
-/* Enhanced status badges for sponsors */
-.status-benefits-sent {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-benefits-pending {
-    background: #fff3cd;
-    color: #856404;
-}
-
 /* Tier badges */
 .tier-badge {
     padding: 0.25rem 0.75rem;

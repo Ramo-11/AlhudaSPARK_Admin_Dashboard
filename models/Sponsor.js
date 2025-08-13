@@ -43,7 +43,11 @@ const sponsorSchema = new mongoose.Schema({
         trim: true,
         default: ''
     },
-    
+    logo: {
+        type: String,
+        trim: true,
+    },
+
     // Sponsorship Details
     tier: {
         type: String,
@@ -98,16 +102,6 @@ const sponsorSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
-    
-    // Benefits tracking
-    benefitsSent: {
-        type: Boolean,
-        default: false
-    },
-    benefitsSentDate: {
-        type: Date,
-        default: null
-    }
 }, {
     timestamps: true // Adds createdAt and updatedAt automatically
 });

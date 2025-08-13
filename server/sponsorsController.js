@@ -1,5 +1,6 @@
 // sponsorsController.js
 const Sponsor = require("../models/Sponsor");
+const { uploadImageToCloudinary, deleteImageFromCloudinary } = require('./cloudinaryController');
 
 exports.getAll = async (req,res)=>{
   try{ const data = await Sponsor.find({}).sort("-createdAt");
@@ -8,24 +9,67 @@ exports.getAll = async (req,res)=>{
 
 exports.create = async (req,res)=>{
   try{
-    const sponsor = new Sponsor({
+    const sponsorData = {
       ...req.body,
       sponsorId: Sponsor.generateSponsorId()
-    });
+    };
+    
+    // Handle logo upload
+    const logoFile = req.file;
+    if (logoFile) {
+      const companyName = req.body.companyName || 'sponsor';
+      const sponsorId = sponsorData.sponsorId;
+      
+      const uploadResult = await uploadImageToCloudinary(logoFile.buffer, {
+        folder: `alhuda_spark/sponsors/${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_${sponsorId}`,
+        transformation: [
+          { width: 400, height: 300, crop: 'limit' },
+          { quality: 'auto' },
+          { fetch_format: 'auto' }
+        ]
+      });
+      
+      sponsorData.logo = uploadResult.secure_url;
+    }
+    
+    const sponsor = new Sponsor(sponsorData);
     await sponsor.save();
     res.json({success:true,data:sponsor});
-  }catch(e){res.json({success:false,message:"Create failed"});}
+  }catch(e){
+    res.json({success:false,message:e.message || "Create failed"});
+  }
 };
 
 exports.update = async (req,res)=>{
   try{
+    const updateData = {...req.body};
+    
+    // Handle logo upload
+    const logoFile = req.file;
+    if (logoFile) {
+      const companyName = req.body.companyName || 'sponsor';
+      
+      const uploadResult = await uploadImageToCloudinary(logoFile.buffer, {
+        folder: 'alhuda_spark/sponsors/',
+        transformation: [
+          { width: 400, height: 300, crop: 'limit' },
+          { quality: 'auto' },
+          { fetch_format: 'auto' }
+        ]
+      });
+      
+      updateData.logo = uploadResult.secure_url;
+    }
+    
     const data = await Sponsor.findOneAndUpdate(
       {sponsorId:req.params.id},
-      {...req.body},
+      updateData,
       {new:true}
     );
     res.json({success:true,data});
-  }catch(e){res.json({success:false,message:"Update failed"});}
+  }catch(e){
+    res.json({success:false,message:e.message || "Update failed"});
+  }
 };
 
 exports.updatePayment = async (req, res) => {
@@ -51,17 +95,6 @@ exports.updatePayment = async (req, res) => {
   } catch (e) {
     res.json({ success: false, message: "Payment update failed" });
   }
-};
-
-exports.updateBenefits = async (req,res)=>{
-  try{
-    const data = await Sponsor.findOneAndUpdate(
-      {sponsorId:req.params.id},
-      {benefitsSent:!!req.body.benefitsSent, benefitsSentDate: new Date(), notes:req.body.notes||""},
-      {new:true}
-    );
-    res.json({success:true,data});
-  }catch(e){res.json({success:false,message:"Benefits update failed"});}
 };
 
 exports.remove = async (req,res)=>{

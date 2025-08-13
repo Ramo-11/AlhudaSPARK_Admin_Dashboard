@@ -70,13 +70,6 @@
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
-                    <div class="filter-group">
-                        <select id="benefits-filter" class="form-select">
-                            <option value="">All Benefits Status</option>
-                            <option value="sent">Benefits Sent</option>
-                            <option value="pending">Benefits Pending</option>
-                        </select>
-                    </div>
                     <div class="action-group">
                         <button id="add-sponsor-btn" class="btn btn-primary">+ Add Sponsor</button>
                         <button id="export-btn" class="btn btn-secondary">Export</button>
@@ -123,13 +116,12 @@
                 <table class="data-table" id="sponsors-table">
                     <thead>
                         <tr>
+                            <th>Logo and Company</th>
                             <th>Sponsor ID</th>
-                            <th>Company Name</th>
                             <th>Contact Person</th>
                             <th>Tier</th>
                             <th>Amount</th>
                             <th>Payment Status</th>
-                            <th>Benefits</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -181,10 +173,10 @@
                         <label class="form-label">Sponsorship Tier *</label>
                         <select name="tier" class="form-select" required>
                             <option value="">Select Tier</option>
-                            <option value="diamond">Diamond ($5,000+)</option>
-                            <option value="platinum">Platinum ($2,500+)</option>
-                            <option value="gold">Gold ($1,000+)</option>
-                            <option value="silver">Silver ($500+)</option>
+                            <option value="diamond">Diamond ($10,000+)</option>
+                            <option value="platinum">Platinum ($5,000+)</option>
+                            <option value="gold">Gold ($2,500+)</option>
+                            <option value="silver">Silver ($1000+)</option>
                         </select>
                     </div>
                     
@@ -196,6 +188,16 @@
                     <div class="form-group">
                         <label class="form-label">Website</label>
                         <input type="url" name="website" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Company Logo</label>
+                        <input type="file" name="logo" class="form-input" accept="image/*">
+                        <small class="form-help">Upload company logo (optional)</small>
+                        <div id="current-logo" style="display: none; margin-top: 0.5rem;">
+                            <img id="logo-thumbnail" src="" alt="Current Logo" style="max-width: 100px; max-height: 100px; border-radius: 4px;">
+                            <button type="button" class="btn-small btn-secondary" id="view-logo-btn" style="margin-left: 0.5rem;">View Full</button>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -242,27 +244,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancel-delete">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Benefits Modal -->
-    <div id="benefits-modal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>Update Benefits Status</h2>
-                <button class="close-btn" id="close-benefits-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Mark benefits as sent for <strong id="benefits-sponsor-name"></strong>?</p>
-                <div class="form-group">
-                    <label class="form-label">Notes</label>
-                    <textarea id="benefits-notes" class="form-textarea" placeholder="Optional notes about benefits sent..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancel-benefits">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirm-benefits">Mark as Sent</button>
             </div>
         </div>
     </div>

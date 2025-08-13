@@ -81,7 +81,6 @@ function updateActivityDisplay(activities) {
     const activityList = document.getElementById('activity-list');
     
     if (!activityList) {
-        console.error('Activity list element not found');
         return;
     }
     
