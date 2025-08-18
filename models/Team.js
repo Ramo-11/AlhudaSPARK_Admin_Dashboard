@@ -134,7 +134,7 @@ const teamSchema = new mongoose.Schema({
     },
     paymentMethod: {
         type: String,
-        enum: ['check', 'cash', 'zelle', 'venmo', 'stripe', 'zeffy'],
+        enum: ['check', 'cash', 'zelle', 'venmo', 'stripe'],
         default: null
     },
     paymentStatus: {
@@ -149,12 +149,6 @@ const teamSchema = new mongoose.Schema({
     },
     paymentDate: {
         type: Date,
-        default: null
-    },
-    
-    // Zeffy specific fields
-    zeffySessionId: {
-        type: String,
         default: null
     },
     
@@ -230,7 +224,6 @@ teamSchema.index({ tier: 1, gender: 1, registrationStatus: 1 });
 teamSchema.index({ organization: 1 });
 teamSchema.index({ city: 1 });
 teamSchema.index({ createdAt: -1 });
-teamSchema.index({ coachEmail: 1 });
 
 // Static method to generate unique team ID
 teamSchema.statics.generateTeamId = function() {

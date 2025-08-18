@@ -64,7 +64,7 @@ const sponsorSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['check', 'cash', 'zelle', 'venmo', 'stripe', 'zeffy']
+        enum: ['check', 'cash', 'zelle', 'venmo', 'stripe']
     },
     paymentStatus: {
         type: String,
@@ -78,12 +78,6 @@ const sponsorSchema = new mongoose.Schema({
     },
     paymentDate: {
         type: Date,
-        default: null
-    },
-    
-    // Zeffy specific fields
-    zeffySessionId: {
-        type: String,
         default: null
     },
     
