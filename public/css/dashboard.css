@@ -175,49 +175,6 @@ body {
     color: #5a1a8a;
 }
 
-/* Quick Actions */
-.quick-actions {
-    margin-bottom: 3rem;
-}
-
-.quick-actions h2 {
-    color: #333;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
-}
-
-.action-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.8rem;
-    padding: 1.5rem;
-    background: white;
-    border-radius: 12px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
-
-.action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    border-color: #667eea;
-}
-
-.action-icon {
-    font-size: 1.5rem;
-}
-
 /* Recent Activity */
 .recent-activity {
     background: white;
@@ -326,6 +283,57 @@ body {
 .form-textarea {
     resize: vertical;
     min-height: 100px;
+}
+
+.booth-selection {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #f9f9f9;
+}
+
+.booth-section {
+    margin-bottom: 1rem;
+}
+
+.booth-section h4 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.booth-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+}
+
+.booth-option {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.booth-option:hover {
+    background: #f0f0f0;
+}
+
+.booth-option input[type="checkbox"] {
+    margin: 0;
+}
+
+.total-price-display {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: #e9f7fe;
+    border-radius: 4px;
+    text-align: center;
 }
 
 /* Buttons */

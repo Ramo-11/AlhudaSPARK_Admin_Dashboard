@@ -1,6 +1,6 @@
 // sponsorsController.js
 const Sponsor = require("../models/Sponsor");
-const { uploadImageToCloudinary, deleteImageFromCloudinary } = require('./cloudinaryController');
+const { uploadImageToCloudinary } = require('./cloudinaryController');
 
 exports.getAll = async (req,res)=>{
   try{ const data = await Sponsor.find({}).sort("-createdAt");
@@ -21,7 +21,7 @@ exports.create = async (req,res)=>{
       const sponsorId = sponsorData.sponsorId;
       
       const uploadResult = await uploadImageToCloudinary(logoFile.buffer, {
-        folder: `alhuda_spark/sponsors/${companyName.replace(/[^a-zA-Z0-9]/g, '_')}_${sponsorId}`,
+        folder: 'alhuda_spark/sponsors/',
         transformation: [
           { width: 400, height: 300, crop: 'limit' },
           { quality: 'auto' },

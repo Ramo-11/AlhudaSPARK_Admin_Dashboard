@@ -71,9 +71,10 @@ route.get("/api/dashboard/activity", async (req,res)=>{
 
 // Vendors
 route.get("/api/vendors", vendors.getAll);
-route.post("/api/vendors", vendors.create);
-route.put("/api/vendors/:id", vendors.update);
+route.post("/api/vendors", upload.single('logo'), vendors.create);
+route.put("/api/vendors/:id", upload.single('logo'), vendors.update);
 route.delete("/api/vendors/:id", vendors.remove);
+route.patch("/api/vendors/:id/payment", vendors.updatePayment);
 
 // Teams
 route.get("/api/teams", teams.getAll);

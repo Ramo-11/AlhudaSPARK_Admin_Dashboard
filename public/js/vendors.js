@@ -27,7 +27,16 @@ function setupEventListeners() {
     document.getElementById('cancel-btn').addEventListener('click', closeModal);
     document.getElementById('close-delete-modal').addEventListener('click', closeDeleteModal);
     document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
-    
+
+    // Payment modal controls
+    document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
+    document.getElementById('cancel-payment-btn').addEventListener('click', closePaymentModal);
+    document.getElementById('payment-form').addEventListener('submit', handlePaymentStatusUpdate);
+
+    document.getElementById('payment-modal').addEventListener('click', function(e) {
+        if (e.target === this) closePaymentModal();
+    });
+
     // Form submission
     document.getElementById('vendor-form').addEventListener('submit', handleFormSubmit);
     
@@ -139,17 +148,33 @@ function updateVendorsTable() {
             <td><strong>${vendor.businessName}</strong></td>
             <td>${vendor.contactPerson}</td>
             <td>${formatVendorType(vendor.vendorType)}</td>
-            <td>${formatBoothLocation(vendor.boothLocation)}</td>
-            <td>$${vendor.boothPrice?.toLocaleString() || '0'}</td>
+            <td>${formatSelectedBooths(vendor.booths)}</td>
+            <td>$${vendor.totalBoothPrice?.toLocaleString() || '0'}</td>
             <td><span class="status-badge status-${vendor.paymentStatus}">${vendor.paymentStatus}</span></td>
             <td>
                 <div class="action-buttons">
                     <button class="btn-small btn-primary" onclick="editVendor('${vendor.vendorId}')">Edit</button>
+                    <button class="btn-small btn-info" onclick="updatePaymentStatus('${vendor.vendorId}')">Payment</button>
                     <button class="btn-small btn-danger" onclick="confirmDeleteVendor('${vendor.vendorId}')">Delete</button>
                 </div>
             </td>
         </tr>
     `).join('');
+}
+
+function updatePaymentStatus(vendorId) {
+    const vendor = currentVendors.find(v => v.vendorId === vendorId);
+    if (!vendor) return;
+    
+    editingVendorId = vendorId;
+    document.getElementById('current-payment-status').textContent = vendor.paymentStatus;
+    document.getElementById('payment-status-select').value = vendor.paymentStatus;
+    document.getElementById('payment-modal').style.display = 'block';
+}
+
+function formatSelectedBooths(booths) {
+    if (!booths || booths.length === 0) return 'None';
+    return booths.map(booth => booth.boothId).join(', ');
 }
 
 // Apply filters
@@ -258,6 +283,58 @@ function editVendor(vendorId) {
     document.getElementById('vendor-modal').style.display = 'block';
 }
 
+function updatePaymentStatus(vendorId) {
+    const vendor = currentVendors.find(v => v.vendorId === vendorId);
+    if (!vendor) return;
+    
+    editingVendorId = vendorId;
+    document.getElementById('current-payment-status').textContent = vendor.paymentStatus;
+    document.getElementById('payment-status-select').value = vendor.paymentStatus;
+    document.getElementById('payment-modal').style.display = 'block';
+}
+
+async function handlePaymentStatusUpdate(e) {
+    e.preventDefault();
+    
+    const newStatus = document.getElementById('payment-status-select').value;
+    const transactionId = document.getElementById('transaction-id').value;
+    
+    try {
+        showLoading();
+        
+        const response = await fetch(`/api/vendors/${editingVendorId}/payment`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                paymentStatus: newStatus,
+                transactionId: transactionId || null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Payment status updated successfully', 'success');
+            closePaymentModal();
+            loadVendors();
+        } else {
+            showToast(result.message || 'Failed to update payment status', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating payment status:', error);
+        showToast('Error updating payment status', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+function closePaymentModal() {
+    document.getElementById('payment-modal').style.display = 'none';
+    editingVendorId = null;
+}
+
 // Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
@@ -364,9 +441,9 @@ function exportVendors() {
 function generateVendorsCSV(vendors) {
     const headers = [
         'Vendor ID', 'Business Name', 'Contact Person', 'Email', 'Phone', 
-        'Vendor Type', 'Booth Location', 'Booth Price', 'Payment Method', 
+        'Vendor Type', 'Selected Booths', 'Total Price', 'Payment Method', 
         'Payment Status', 'Address', 'Website', 'Business Description',
-        'Requires Electricity', 'Requires Water', 'Special Requirements'
+        'Special Requirements', 'Transaction ID'
     ];
     
     const rows = vendors.map(vendor => [
@@ -376,16 +453,15 @@ function generateVendorsCSV(vendors) {
         vendor.email,
         vendor.phone,
         formatVendorType(vendor.vendorType),
-        formatBoothLocation(vendor.boothLocation),
-        vendor.boothPrice,
+        formatSelectedBooths(vendor.booths),
+        vendor.totalBoothPrice,
         vendor.paymentMethod,
         vendor.paymentStatus,
         vendor.address,
         vendor.website,
         vendor.businessDescription,
-        vendor.requiresElectricity ? 'Yes' : 'No',
-        vendor.requiresWater ? 'Yes' : 'No',
-        vendor.specialRequirements
+        vendor.specialRequirements,
+        vendor.transactionId || ''
     ]);
     
     return [headers, ...rows]
