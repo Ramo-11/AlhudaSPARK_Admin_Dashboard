@@ -175,4 +175,6 @@ sponsorSchema.set('toJSON', {
     }
 });
 
-module.exports = mongoose.models.Sponsor || mongoose.model('Sponsor', sponsorSchema);
+const Sponsor = mongoose.model('Sponsor', sponsorSchema);
+
+module.exports = Sponsor;
