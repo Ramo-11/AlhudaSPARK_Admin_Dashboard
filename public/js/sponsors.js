@@ -96,10 +96,10 @@ async function loadSponsors() {
 // Update tier counts
 function updateTierCounts() {
     const tierCounts = {
-        diamond: 0,
+        title: 0,
         platinum: 0,
         gold: 0,
-        silver: 0
+        supporter: 0
     };
     
     currentSponsors.forEach(sponsor => {
@@ -108,10 +108,10 @@ function updateTierCounts() {
         }
     });
     
-    document.getElementById('diamond-count').textContent = tierCounts.diamond;
+    document.getElementById('title-count').textContent = tierCounts.title;
     document.getElementById('platinum-count').textContent = tierCounts.platinum;
     document.getElementById('gold-count').textContent = tierCounts.gold;
-    document.getElementById('silver-count').textContent = tierCounts.silver;
+    document.getElementById('supporter-count').textContent = tierCounts.supporter;
 }
 
 // Update sponsors table
@@ -270,10 +270,10 @@ function updateMinimumAmount() {
     const selectedTier = tierSelect.value;
     
     const minimumAmounts = {
-        'diamond': 10000,
+        'title': 10000,
         'platinum': 5000,
         'gold': 2500,
-        'silver': 1000
+        'supporter': 1000
     };
     
     if (selectedTier && minimumAmounts[selectedTier]) {
@@ -297,10 +297,10 @@ function validateAmount() {
     if (!amount || !tier) return;
     
     const minimumAmounts = {
-        'diamond': 10000,
+        'title': 10000,
         'platinum': 5000,
         'gold': 2500,
-        'silver': 1000
+        'supporter': 1000
     };
     
     if (amount < minimumAmounts[tier]) {

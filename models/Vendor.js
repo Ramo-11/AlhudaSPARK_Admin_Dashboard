@@ -48,7 +48,7 @@ const vendorSchema = new mongoose.Schema({
     vendorType: {
         type: String,
         required: true,
-        enum: ['food', 'clothing', 'accessories', 'books', 'toys', 'sports', 'services', 'other'],
+        enum: ['food', 'clothing', 'accessories', 'books', 'crafts', 'services', 'other'],
         lowercase: true
     },
     
@@ -60,14 +60,24 @@ const vendorSchema = new mongoose.Schema({
         maxlength: 500
     },
     
-    // Booth Location & Pricing
-    boothLocation: {
-        type: String,
-        required: true,
-        enum: ['back', 'central', 'side_corner', 'front_corner'],
-        lowercase: true
-    },
-    boothPrice: {
+    // Booth Selection
+    booths: [{
+        boothId: {
+            type: String,
+            required: true
+        },
+        boothType: {
+            type: String,
+            enum: ['premium', 'standard'],
+            required: true
+        },
+        price: {
+            type: Number,
+            required: true
+        }
+    }],
+    
+    totalBoothPrice: {
         type: Number,
         required: true
     },
@@ -76,7 +86,7 @@ const vendorSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ['check', 'cash', 'zelle', 'venmo', 'stripe', 'zeffy']
+        enum: ['zelle', 'stripe']
     },
     paymentStatus: {
         type: String,
@@ -92,26 +102,22 @@ const vendorSchema = new mongoose.Schema({
         type: Date,
         default: null
     },
-    
-    // Zeffy specific fields
-    zeffySessionId: {
-        type: String,
-        default: null
-    },
-    
-    // Booth Requirements
-    requiresElectricity: {
-        type: Boolean,
-        default: false
-    },
-    requiresWater: {
-        type: Boolean,
-        default: false
-    },
+
     specialRequirements: {
         type: String,
         default: '',
-        maxlength: 200
+        maxlength: 300
+    },
+    
+    // Terms Acceptance
+    acceptedTerms: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+    acceptedTermsDate: {
+        type: Date,
+        default: null
     },
     
     // Additional Information
@@ -128,28 +134,14 @@ const vendorSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
-    },
-    boothNumber: {
-        type: String,
-        default: null
-    },
-    
-    // Setup tracking
-    setupInstructions: {
-        type: String,
-        default: ''
-    },
-    setupComplete: {
-        type: Boolean,
-        default: false
     }
 }, {
-    timestamps: true // Adds createdAt and updatedAt automatically
+    timestamps: true
 });
 
-// Indexes for better query performance
+// Indexes
 vendorSchema.index({ vendorType: 1, paymentStatus: 1 });
-vendorSchema.index({ boothLocation: 1, paymentStatus: 1 });
+vendorSchema.index({ 'booths.boothId': 1 });
 vendorSchema.index({ createdAt: -1 });
 
 // Static method to generate unique vendor ID
@@ -159,14 +151,14 @@ vendorSchema.statics.generateVendorId = function() {
     return `VND-${timestamp}-${randomStr}`.toUpperCase();
 };
 
-// Static method to get booth pricing
-vendorSchema.statics.getBoothPricing = function() {
-    return {
-        'back': 750,           // Far back locations with low traffic
-        'central': 1100,       // Central aisle locations
-        'side_corner': 1400,   // Side corner aisle booth
-        'front_corner': 1600   // Front corner aisle booths
+// Static method to calculate booth pricing
+vendorSchema.statics.calculateBoothPrice = function(boothType, quantity) {
+    const pricing = {
+        premium: { 1: 700, 2: 1200, 3: 1800 },
+        standard: { 1: 400, 2: 700, 3: 1000 }
     };
+    
+    return pricing[boothType]?.[quantity] || 0;
 };
 
 // Instance method to mark payment as complete
@@ -177,86 +169,9 @@ vendorSchema.methods.markPaymentComplete = function(transactionId) {
     return this.save();
 };
 
-// Instance method to update payment status
-vendorSchema.methods.updatePaymentStatus = function(status, transactionId = null) {
-    this.paymentStatus = status;
-    if (transactionId) {
-        this.transactionId = transactionId;
-    }
-    if (status === 'completed') {
-        this.paymentDate = new Date();
-    }
-    return this.save();
-};
-
-// Instance method to assign booth number
-vendorSchema.methods.assignBoothNumber = function(boothNumber) {
-    this.boothNumber = boothNumber;
-    return this.save();
-};
-
-// Static method to find vendors by type
-vendorSchema.statics.findByType = function(vendorType) {
-    return this.find({ 
-        vendorType: vendorType.toLowerCase(), 
-        paymentStatus: 'completed',
-        isActive: true 
-    }).sort({ createdAt: -1 });
-};
-
-// Static method to find vendors by location
-vendorSchema.statics.findByLocation = function(boothLocation) {
-    return this.find({ 
-        boothLocation: boothLocation.toLowerCase(), 
-        paymentStatus: 'completed',
-        isActive: true 
-    }).sort({ createdAt: -1 });
-};
-
-// Static method to find active vendors
-vendorSchema.statics.findActiveVendors = function() {
-    return this.find({ 
-        paymentStatus: 'completed',
-        isActive: true 
-    }).sort({ boothLocation: 1, createdAt: -1 });
-};
-
-// Static method to find pending payments
-vendorSchema.statics.findPendingPayments = function() {
-    return this.find({ 
-        paymentStatus: 'pending'
-    }).sort({ createdAt: -1 });
-};
-
-// Virtual for display name
-vendorSchema.virtual('displayName').get(function() {
-    return this.businessName;
-});
-
-// Virtual for vendor type display name
-vendorSchema.virtual('vendorTypeDisplayName').get(function() {
-    const typeMap = {
-        'food': 'Food & Beverages',
-        'clothing': 'Clothing & Apparel',
-        'accessories': 'Accessories',
-        'books': 'Books & Education',
-        'toys': 'Toys & Games',
-        'sports': 'Sports & Fitness',
-        'services': 'Services',
-        'other': 'Other'
-    };
-    return typeMap[this.vendorType] || this.vendorType;
-});
-
-// Virtual for booth location display name
-vendorSchema.virtual('boothLocationDisplayName').get(function() {
-    const locationMap = {
-        'back': 'Back Area (Low Traffic)',
-        'central': 'Central Aisle',
-        'side_corner': 'Side Corner Aisle',
-        'front_corner': 'Front Corner Aisle'
-    };
-    return locationMap[this.boothLocation] || this.boothLocation;
+// Virtual for booth count
+vendorSchema.virtual('boothCount').get(function() {
+    return this.booths.length;
 });
 
 // Transform for JSON output

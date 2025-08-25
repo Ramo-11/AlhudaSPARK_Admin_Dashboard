@@ -881,7 +881,7 @@ body {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
-.tier-card.diamond::before {
+.tier-card.title::before {
     background: linear-gradient(135deg, #b8860b 0%, #ffd700 100%);
 }
 
@@ -893,7 +893,7 @@ body {
     background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
 }
 
-.tier-card.silver::before {
+.tier-card.supporter::before {
     background: linear-gradient(135deg, #c0c0c0 0%, #d4d4d4 100%);
 }
 
@@ -933,7 +933,7 @@ body {
     text-transform: capitalize;
 }
 
-.tier-badge.tier-diamond {
+.tier-badge.tier-title {
     background: linear-gradient(135deg, #b8860b, #ffd700);
     color: white;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
@@ -949,7 +949,7 @@ body {
     color: #333;
 }
 
-.tier-badge.tier-silver {
+.tier-badge.tier-supporter {
     background: linear-gradient(135deg, #c0c0c0, #d4d4d4);
     color: #333;
 }

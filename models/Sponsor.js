@@ -52,7 +52,7 @@ const sponsorSchema = new mongoose.Schema({
     tier: {
         type: String,
         required: true,
-        enum: ['diamond', 'platinum', 'gold', 'silver'],
+        enum: ['title', 'platinum', 'gold', 'supporter'],
         lowercase: true
     },
     amount: {
@@ -175,6 +175,4 @@ sponsorSchema.set('toJSON', {
     }
 });
 
-const Sponsor = mongoose.model('Sponsor', sponsorSchema);
-
-module.exports = Sponsor;
+module.exports = mongoose.models.Sponsor || mongoose.model('Sponsor', sponsorSchema);
