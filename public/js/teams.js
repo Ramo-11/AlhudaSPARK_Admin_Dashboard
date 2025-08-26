@@ -112,7 +112,8 @@ function updateRegistrationFee() {
     const registrationFees = {
         'elementary': 350,
         'middle': 350,
-        'high_school': 350
+        'high_school': 350,
+        'open': 350
     };
     
     console.log('Selected tier:', selectedTier, 'Fee:', registrationFees[selectedTier] || 0);
@@ -658,7 +659,8 @@ function formatTier(tier) {
     const tierMap = {
         'elementary': 'Elementary School',
         'middle': 'Middle School',
-        'high_school': 'High School'
+        'high_school': 'High School',
+        'open': "Men's Open and Alumni"
     };
     return tierMap[tier] || tier;
 }
