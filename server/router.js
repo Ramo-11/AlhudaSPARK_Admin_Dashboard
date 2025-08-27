@@ -4,9 +4,11 @@ const route = express.Router();
 const Vendor = require("../models/Vendor");
 const Team = require("../models/Team");
 const Sponsor = require("../models/Sponsor");
+const Player = require("../models/Player");
 const vendors = require("./vendorsController");
 const teams = require("./teamsController");
 const sponsors = require("./sponsorsController");
+const players = require("./playersController");
 
 const { 
     upload, 
@@ -21,6 +23,7 @@ route.get("/", (req,res)=>res.render("dashboard"));
 route.get("/vendors", (req,res)=>res.render("vendors"));
 route.get("/teams", (req,res)=>res.render("teams"));
 route.get("/sponsors", (req,res)=>res.render("sponsors"));
+route.get("/players", (req,res)=>res.render("players"));
 
 // Dashboard API
 route.get("/api/dashboard/stats", async (req,res)=>{
@@ -34,19 +37,33 @@ route.get("/api/dashboard/stats", async (req,res)=>{
     const [sTotal,sActive] = await Promise.all([
       Sponsor.countDocuments({}), Sponsor.countDocuments({isActive:true})
     ]);
+    const [pTotal, pApproved] = await Promise.all([
+      Player.countDocuments({}),
+      Player.countDocuments({ registrationStatus: "approved" })
+  ]);
     const vendRev = await Vendor.aggregate([{ $match:{paymentStatus:"completed"} },{ $group:{_id:0,sum:{$sum:"$boothPrice"}} }]);
     const teamRev = await Team.aggregate([{ $match:{paymentStatus:"completed"} },{ $group:{_id:0,sum:{$sum:"$registrationFee"}} }]);
     const sponRev = await Sponsor.aggregate([{ $match:{paymentStatus:"completed"} },{ $group:{_id:0,sum:{$sum:"$amount"}} }]);
+    const practiceRev = await Player.aggregate([
+      { $match: { paymentStatus: "completed" } },
+      { $group: { _id: null, sum: { $sum: "$registrationFee" } } }
+  ]);
     const pending = await Promise.all([
       Vendor.countDocuments({paymentStatus:"pending"}),
       Team.countDocuments({paymentStatus:"pending"}),
-      Sponsor.countDocuments({paymentStatus:"pending"})
+      Sponsor.countDocuments({paymentStatus:"pending"}),
+      Player.countDocuments({paymentStatus:"pending"})
     ]);
     res.json({success:true,data:{
       vendors:{total:vTotal,active:vActive},
       teams:{total:tTotal,approved:tApproved},
       sponsors:{total:sTotal,active:sActive},
-      revenue:{total:(vendRev[0]?.sum||0)+(teamRev[0]?.sum||0)+(sponRev[0]?.sum||0),pending: pending.reduce((a,b)=>a+b,0)}
+      players: { total: pTotal, approved: pApproved },
+      practiceRevenue: practiceRev[0]?.sum || 0,
+      revenue: {
+          total: (vendRev[0]?.sum || 0) + (teamRev[0]?.sum || 0) + (sponRev[0]?.sum || 0) + (practiceRev[0]?.sum || 0),
+          pending: pending.reduce((a, b) => a + b, 0) + await Player.countDocuments({ paymentStatus: "pending" })
+      },
     }});
   }catch(e){res.json({success:false,message:"Stats error"});}
 });
@@ -90,5 +107,14 @@ route.post('/api/sponsors', upload.single('logo'), sponsors.create);
 route.put('/api/sponsors/:id', upload.single('logo'), sponsors.update);
 route.delete("/api/sponsors/:id", sponsors.remove);
 route.patch("/api/sponsors/:id/payment", sponsors.updatePayment);
+
+// Players
+route.get("/api/players", players.getAll);
+route.get("/api/players/stats", players.getStats);
+route.get("/api/players/shirts", players.getShirtSummary);
+route.post("/api/players", players.create);
+route.put("/api/players/:id", players.update);
+route.patch("/api/players/:id/payment", players.updatePayment);
+route.delete("/api/players/:id", players.remove);
 
 module.exports = route;

@@ -45,7 +45,9 @@ function updateStatsDisplay(data) {
     const activeSponsors = document.getElementById('active-sponsors');
     const revenueCount = document.getElementById('revenue-count');
     const pendingPayments = document.getElementById('pending-payments');
-    
+    const practicePlayersCount = document.getElementById('practice-players-count');
+    const approvedPracticePlayers = document.getElementById('approved-practice-players');
+
     if (vendorsCount) vendorsCount.textContent = data.vendors?.total || 0;
     if (activeVendors) activeVendors.textContent = data.vendors?.active || 0;
     if (teamsCount) teamsCount.textContent = data.teams?.total || 0;
@@ -54,6 +56,8 @@ function updateStatsDisplay(data) {
     if (activeSponsors) activeSponsors.textContent = data.sponsors?.active || 0;
     if (revenueCount) revenueCount.textContent = formatCurrency(data.revenue?.total || 0);
     if (pendingPayments) pendingPayments.textContent = data.revenue?.pending || 0;
+    if (practicePlayersCount) practicePlayersCount.textContent = data.players?.total || 0;
+    if (approvedPracticePlayers) approvedPracticePlayers.textContent = data.players?.approved || 0;
 }
 
 // Load recent activity
