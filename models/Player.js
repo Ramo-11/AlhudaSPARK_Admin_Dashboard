@@ -23,7 +23,7 @@ const playerSchema = new mongoose.Schema({
     shirtSize: {
         type: String,
         required: true,
-        enum: ['MS', 'MM', 'ML', 'MXL', 'WS', 'WM', 'WL', 'WXL'],
+        enum: ['YS', 'YM', 'YL', 'YXL', 'AS', 'AM', 'AL', 'AXL'],
         uppercase: true
     },
     currentGrade: {
@@ -171,14 +171,14 @@ playerSchema.methods.acceptWaiver = function() {
 // Virtual for shirt size display name
 playerSchema.virtual('shirtSizeDisplayName').get(function() {
     const sizeMap = {
-        'MS': 'Men\'s Small',
-        'MM': 'Men\'s Medium',
-        'ML': 'Men\'s Large',
-        'MXL': 'Men\'s X-Large',
-        'WS': 'Women\'s Small',
-        'WM': 'Women\'s Medium',
-        'WL': 'Women\'s Large',
-        'WXL': 'Women\'s X-Large'
+        'YS': 'Youth Small',
+        'YM': 'Youth Medium',
+        'YL': 'Youth Large',
+        'YXL': 'Youth X-Large',
+        'AS': 'Adult Small',
+        'AM': 'Adult Medium',
+        'AL': 'Adult Large',
+        'AXL': 'Adult X-Large'
     };
     return sizeMap[this.shirtSize] || this.shirtSize;
 });
