@@ -133,8 +133,9 @@ function updatePlayersTable() {
             <td>${player.playerId}</td>
             <td><strong>${player.playerName}</strong></td>
             <td>${player.ageAtRegistration || calculateAge(player.dateOfBirth)}</td>
-            <td>${player.currentGrade}<br><small>${player.currentSchool}</small></td>
+            <td><small>${player.currentSchool}</small></td>
             <td><span class="shirt-size-badge">${player.shirtSize}</span></td>
+            <td>${player.chosenTeam}</td>
             <td>${player.parentInfo?.name || ''}</td>
             <td>
                 ${player.parentInfo?.email || ''}<br>
@@ -165,8 +166,8 @@ function applyFilters() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
     
     filteredPlayers = currentPlayers.filter(player => {
-        const matchesGrade = !gradeFilter || player.currentGrade?.includes(gradeFilter);
         const matchesShirt = !shirtFilter || player.shirtSize === shirtFilter;
+        const matchesTeam = !teamFilter || player.chosenTeam === teamFilter;
         const matchesStatus = !statusFilter || player.registrationStatus === statusFilter;
         const matchesPayment = !paymentFilter || player.paymentStatus === paymentFilter;
         const matchesSearch = !searchTerm || 
@@ -249,7 +250,7 @@ function editPlayer(playerId) {
     form.playerName.value = player.playerName || '';
     form.dateOfBirth.value = player.dateOfBirth ? new Date(player.dateOfBirth).toISOString().split('T')[0] : '';
     form.shirtSize.value = player.shirtSize || '';
-    form.currentGrade.value = player.currentGrade || '';
+    form.chosenTeam.value = player.chosenTeam || '';
     form.currentSchool.value = player.currentSchool || '';
     form.parentName.value = player.parentInfo?.name || '';
     form.parentEmail.value = player.parentInfo?.email || '';
@@ -269,7 +270,7 @@ async function handleFormSubmit(e) {
         playerName: formData.get('playerName'),
         dateOfBirth: formData.get('dateOfBirth'),
         shirtSize: formData.get('shirtSize'),
-        currentGrade: formData.get('currentGrade'),
+        chosenTeam: formData.get('chosenTeam'),
         currentSchool: formData.get('currentSchool'),
         parentInfo: {
             name: formData.get('parentName'),
@@ -410,8 +411,8 @@ async function handleDelete() {
 function showShirtSummary() {
     const approvedPlayers = currentPlayers.filter(p => p.registrationStatus === 'approved');
     const shirtCounts = {};
-    
-    const sizes = ['MS', 'MM', 'ML', 'MXL', 'WS', 'WM', 'WL', 'WXL'];
+
+    const sizes = ['YS', 'YM', 'YL', 'MXL', 'AS', 'AM', 'AL', 'AXL'];
     sizes.forEach(size => {
         shirtCounts[size] = 0;
     });
@@ -424,14 +425,14 @@ function showShirtSummary() {
     
     const tbody = document.getElementById('shirt-summary-body');
     const sizeLabels = {
-        'MS': 'Men Small',
-        'MM': 'Men Medium',
-        'ML': 'Men Large',
-        'MXL': 'Men X-Large',
-        'WS': 'Women Small',
-        'WM': 'Women Medium',
-        'WL': 'Women Large',
-        'WXL': 'Women X-Large'
+        'YS': 'Youth Small',
+        'YM': 'Youth Medium',
+        'YL': 'Youth Large',
+        'YXL': 'Youth X-Large',
+        'AS': 'Adult Small',
+        'AM': 'Adult Medium',
+        'AL': 'Adult Large',
+        'AXL': 'Adult X-Large'
     };
     
     tbody.innerHTML = Object.entries(shirtCounts)
@@ -466,7 +467,7 @@ function exportShirtSummary() {
     const approvedPlayers = currentPlayers.filter(p => p.registrationStatus === 'approved');
     const shirtCounts = {};
     
-    const sizes = ['MS', 'MM', 'ML', 'MXL', 'WS', 'WM', 'WL', 'WXL'];
+    const sizes = ['YS', 'YM', 'YL', 'YXL', 'AS', 'AM', 'AL', 'AXL'];
     sizes.forEach(size => {
         shirtCounts[size] = 0;
     });
@@ -528,9 +529,9 @@ function generatePlayersCSV(players) {
         player.playerName,
         player.dateOfBirth ? new Date(player.dateOfBirth).toLocaleDateString() : '',
         player.ageAtRegistration || calculateAge(player.dateOfBirth),
-        player.currentGrade,
         player.currentSchool,
         player.shirtSize,
+        player.chosenTeam,
         player.parentInfo?.name || '',
         player.parentInfo?.email || '',
         player.parentInfo?.phone || '',

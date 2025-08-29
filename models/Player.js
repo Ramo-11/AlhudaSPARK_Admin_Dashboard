@@ -26,10 +26,13 @@ const playerSchema = new mongoose.Schema({
         enum: ['YS', 'YM', 'YL', 'YXL', 'AS', 'AM', 'AL', 'AXL'],
         uppercase: true
     },
-    currentGrade: {
+    chosenTeam: {
         type: String,
-        required: true,
-        trim: true
+        enum: ['HS Boys White', 'HS Boys Black', 'HS Boys Gold', 'MS Boys White', 
+            'MS Boys Black', 'MS Boys Gold', 'MS Boys Red', 'MS Boys Blue', 'MS Girls White', 
+            'MS Girls Black', 'MS Girls Gold', '4th/5th Boys White', '4th/5th Boys Black', '4th/5th Girls White', 
+            '4th/5th Girls Black', '4th/5th Girls Gold', 'K/1st (Mixed)', '2nd/3rd Girls', '2nd/3rd Boys'],
+        required: true
     },
     currentSchool: {
         type: String,
@@ -182,6 +185,33 @@ playerSchema.virtual('shirtSizeDisplayName').get(function() {
     };
     return sizeMap[this.shirtSize] || this.shirtSize;
 });
+
+// Virtual for chosen team display name
+playerSchema.virtual('chosenTeamDisplayName').get(function() {
+    const teamMap = {
+        'HS Boys White': 'High School Boys White',
+        'HS Boys Black': 'High School Boys Black',
+        'HS Boys Gold': 'High School Boys Gold',
+        'MS Boys White': 'Middle School Boys White',
+        'MS Boys Black': 'Middle School Boys Black',
+        'MS Boys Gold': 'Middle School Boys Gold',
+        'MS Boys Red': 'Middle School Boys Red',
+        'MS Boys Blue': 'Middle School Boys Blue',
+        'MS Girls White': 'Middle School Girls White',
+        'MS Girls Black': 'Middle School Girls Black',
+        'MS Girls Gold': 'Middle School Girls Gold',
+        '4th/5th Boys White': '4th/5th Boys White',
+        '4th/5th Boys Black': '4th/5th Boys Black',
+        '4th/5th Girls White': '4th/5th Girls White',
+        '4th/5th Girls Black': '4th/5th Girls Black',
+        '4th/5th Girls Gold': '4th/5th Girls Gold',
+        'K/1st (Mixed)': 'Kindergarten/1st Grade (Mixed)',
+        '2nd/3rd Girls': '2nd/3rd Grade Girls',
+        '2nd/3rd Boys': '2nd/3rd Grade Boys'
+    };
+    return teamMap[this.chosenTeam] || this.chosenTeam;
+});
+
 
 // Virtual for player status display
 playerSchema.virtual('statusDisplay').get(function() {

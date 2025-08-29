@@ -162,6 +162,7 @@
                             <th>Age</th>
                             <th>Grade/School</th>
                             <th>Shirt Size</th>
+                            <th>Chosen Team</th>
                             <th>Parent</th>
                             <th>Contact</th>
                             <th>Fee</th>
@@ -210,23 +211,46 @@
                         <select name="shirtSize" class="form-select" required>
                             <option value="">Select Size</option>
                             <optgroup label="Youth Sizes">
-                                <option value="MS">Men Small</option>
-                                <option value="MM">Men Medium</option>
-                                <option value="ML">Men Large</option>
-                                <option value="MXL">Men X-Large</option>
+                                <option value="YS">Youth Small</option>
+                                <option value="YM">Youth Medium</option>
+                                <option value="YL">Youth Large</option>
+                                <option value="YXL">Youth X-Large</option>
                             </optgroup>
-                            <optgroup label="Women Sizes">
-                                <option value="WS">Women Small</option>
-                                <option value="WM">Women Medium</option>
-                                <option value="WL">Women Large</option>
-                                <option value="WXL">Women X-Large</option>
+                            <optgroup label="Adult Sizes">
+                                <option value="AS">Adult Small</option>
+                                <option value="AM">Adult Medium</option>
+                                <option value="AL">Adult Large</option>
+                                <option value="AXL">Adult X-Large</option>
                             </optgroup>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label class="form-label">Current Grade *</label>
-                        <input type="text" name="currentGrade" class="form-input" placeholder="e.g., 5th, 8th, 11th" required>
+                        <label for="chosenTeam">Chosen Team *</label>
+                        <select id="chosenTeam" name="chosenTeam" required>
+                            <option value="">Select Team</option>
+                            <optgroup label="Teams">
+                                <option value="HS Boys White">High School Boys White</option>
+                                <option value="HS Boys Black">High School Boys Black</option>
+                                <option value="HS Boys Gold">High School Boys Gold</option>
+                                <option value="MS Boys White">Middle School Boys White</option>
+                                <option value="MS Boys Black">Middle School Boys Black</option>
+                                <option value="MS Boys Gold">Middle School Boys Gold</option>
+                                <option value="MS Boys Red">Middle School Boys Red</option>
+                                <option value="MS Boys Blue">Middle School Boys Blue</option>
+                                <option value="MS Girls White">Middle School Girls White</option>
+                                <option value="MS Girls Black">Middle School Girls Black</option>
+                                <option value="MS Girls Gold">Middle School Girls Gold</option>
+                                <option value="4th/5th Boys White">4th/5th Boys White</option>
+                                <option value="4th/5th Boys Black">4th/5th Boys Black</option>
+                                <option value="4th/5th Girls White">4th/5th Girls White</option>
+                                <option value="4th/5th Girls Black">4th/5th Girls Black</option>
+                                <option value="4th/5th Girls Gold">4th/5th Girls Gold</option>
+                                <option value="K/1st (Mixed)">Kindergarten/1st Grade (Mixed)</option>
+                                <option value="2nd/3rd Girls">2nd/3rd Grade Girls</option>
+                                <option value="2nd/3rd Boys">2nd/3rd Grade Boys</option>
+                            </optgroup>
+                        </select>
                     </div>
                     
                     <div class="form-group">
