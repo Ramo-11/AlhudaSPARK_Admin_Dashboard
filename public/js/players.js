@@ -40,8 +40,8 @@ function setupEventListeners() {
     document.getElementById('confirm-payment').addEventListener('click', handlePaymentUpdate);
     
     // Filters
-    document.getElementById('grade-filter').addEventListener('change', applyFilters);
     document.getElementById('shirt-filter').addEventListener('change', applyFilters);
+    document.getElementById('team-filter').addEventListener('change', applyFilters);
     document.getElementById('status-filter').addEventListener('change', applyFilters);
     document.getElementById('payment-filter').addEventListener('change', applyFilters);
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
@@ -159,8 +159,8 @@ function updatePlayersTable() {
 
 // Apply filters
 function applyFilters() {
-    const gradeFilter = document.getElementById('grade-filter').value;
     const shirtFilter = document.getElementById('shirt-filter').value;
+    const teamFilter = document.getElementById('team-filter').value;
     const statusFilter = document.getElementById('status-filter').value;
     const paymentFilter = document.getElementById('payment-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
@@ -176,8 +176,8 @@ function applyFilters() {
             player.parentInfo?.name?.toLowerCase().includes(searchTerm) ||
             player.parentInfo?.email?.toLowerCase().includes(searchTerm) ||
             player.playerId.toLowerCase().includes(searchTerm);
-        
-        return matchesGrade && matchesShirt && matchesStatus && matchesPayment && matchesSearch;
+
+        return  matchesShirt && matchesTeam && matchesStatus && matchesPayment && matchesSearch;
     });
     
     currentPage = 1;
@@ -518,8 +518,8 @@ function exportPlayers() {
 // Generate CSV content
 function generatePlayersCSV(players) {
     const headers = [
-        'Player ID', 'Player Name', 'Date of Birth', 'Age', 'Grade', 'School',
-        'Shirt Size', 'Parent Name', 'Parent Email', 'Parent Phone',
+        'Player ID', 'Player Name', 'Date of Birth', 'Age', 'School',
+        'Shirt Size', 'Team', 'Parent Name', 'Parent Email', 'Parent Phone',
         'Registration Fee', 'Payment Status', 'Registration Status',
         'Comments', 'Waiver Accepted', 'Registration Date'
     ];
