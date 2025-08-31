@@ -28,7 +28,7 @@ const playerSchema = new mongoose.Schema({
     },
     chosenTeam: {
         type: String,
-        enum: ['HS Boys White', 'HS Boys Black', 'HS Boys Gold', 'MS Boys White', 
+        enum: ['HS Girls', 'HS Boys White', 'HS Boys Black', 'HS Boys Gold', 'MS Boys White', 
             'MS Boys Black', 'MS Boys Gold', 'MS Boys Red', 'MS Boys Blue', 'MS Girls White', 
             'MS Girls Black', 'MS Girls Gold', '4th/5th Boys White', '4th/5th Boys Black', '4th/5th Girls White', 
             '4th/5th Girls Black', '4th/5th Girls Gold', 'K/1st (Mixed)', '2nd/3rd Girls', '2nd/3rd Boys'],
@@ -189,6 +189,7 @@ playerSchema.virtual('shirtSizeDisplayName').get(function() {
 // Virtual for chosen team display name
 playerSchema.virtual('chosenTeamDisplayName').get(function() {
     const teamMap = {
+        'HS Girls': 'High School Girls',
         'HS Boys White': 'High School Boys White',
         'HS Boys Black': 'High School Boys Black',
         'HS Boys Gold': 'High School Boys Gold',
