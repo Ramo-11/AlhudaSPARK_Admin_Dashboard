@@ -133,6 +133,7 @@ function updatePlayersTable() {
             <td>${player.playerId}</td>
             <td><strong>${player.playerName}</strong></td>
             <td>${player.ageAtRegistration || calculateAge(player.dateOfBirth)}</td>
+            <td><small>${player.jerseyName || player.playerName}</small></td>
             <td><small>${player.currentSchool}</small></td>
             <td><span class="shirt-size-badge">${player.shirtSize}</span></td>
             <td>${player.chosenTeam}</td>
@@ -172,6 +173,7 @@ function applyFilters() {
         const matchesPayment = !paymentFilter || player.paymentStatus === paymentFilter;
         const matchesSearch = !searchTerm || 
             player.playerName.toLowerCase().includes(searchTerm) ||
+            player.jerseyName.toLowerCase().includes(searchTerm) ||
             player.currentSchool.toLowerCase().includes(searchTerm) ||
             player.parentInfo?.name?.toLowerCase().includes(searchTerm) ||
             player.parentInfo?.email?.toLowerCase().includes(searchTerm) ||
@@ -251,6 +253,7 @@ function editPlayer(playerId) {
     form.dateOfBirth.value = player.dateOfBirth ? new Date(player.dateOfBirth).toISOString().split('T')[0] : '';
     form.shirtSize.value = player.shirtSize || '';
     form.chosenTeam.value = player.chosenTeam || '';
+    form.jerseyName.value = player.jerseyName || '';
     form.currentSchool.value = player.currentSchool || '';
     form.parentName.value = player.parentInfo?.name || '';
     form.parentEmail.value = player.parentInfo?.email || '';
@@ -271,6 +274,7 @@ async function handleFormSubmit(e) {
         dateOfBirth: formData.get('dateOfBirth'),
         shirtSize: formData.get('shirtSize'),
         chosenTeam: formData.get('chosenTeam'),
+        jerseyName: formData.get('jerseyName'),
         currentSchool: formData.get('currentSchool'),
         parentInfo: {
             name: formData.get('parentName'),
@@ -519,7 +523,7 @@ function exportPlayers() {
 function generatePlayersCSV(players) {
     const headers = [
         'Player ID', 'Player Name', 'Date of Birth', 'Age', 'School',
-        'Shirt Size', 'Team', 'Parent Name', 'Parent Email', 'Parent Phone',
+        'Shirt Size', 'Jersey Name', 'Team', 'Parent Name', 'Parent Email', 'Parent Phone',
         'Registration Fee', 'Payment Status', 'Registration Status',
         'Comments', 'Waiver Accepted', 'Registration Date'
     ];
@@ -529,6 +533,7 @@ function generatePlayersCSV(players) {
         player.playerName,
         player.dateOfBirth ? new Date(player.dateOfBirth).toLocaleDateString() : '',
         player.ageAtRegistration || calculateAge(player.dateOfBirth),
+        player.jerseyName || player.playerName,
         player.currentSchool,
         player.shirtSize,
         player.chosenTeam,

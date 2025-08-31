@@ -52,6 +52,7 @@ exports.create = async (req, res) => {
             playerName: req.body.playerName,
             dateOfBirth: req.body.dateOfBirth,
             shirtSize: req.body.shirtSize?.toUpperCase(),
+            jerseyName: req.body.jerseyName,
             currentSchool: req.body.currentSchool,
             chosenTeam: req.body.chosenTeam,
             parentInfo: {
@@ -85,6 +86,7 @@ exports.update = async (req, res) => {
             playerName: req.body.playerName,
             dateOfBirth: req.body.dateOfBirth,
             shirtSize: req.body.shirtSize?.toUpperCase(),
+            jerseyName: req.body.jerseyName,
             currentSchool: req.body.currentSchool,
             chosenTeam: req.body.chosenTeam,
             parentInfo: {
