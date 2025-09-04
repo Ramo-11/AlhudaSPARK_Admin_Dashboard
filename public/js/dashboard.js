@@ -39,6 +39,11 @@ function updateStatsDisplay(data) {
     // Update vendors stats
     const vendorsCount = document.getElementById('vendors-count');
     const activeVendors = document.getElementById('active-vendors');
+    
+    // Add food vendors stats
+    const foodVendorsCount = document.getElementById('food-vendors-count');
+    const activeFoodVendors = document.getElementById('active-food-vendors');
+    
     const teamsCount = document.getElementById('teams-count');
     const approvedTeams = document.getElementById('approved-teams');
     const sponsorsCount = document.getElementById('sponsors-count');
@@ -50,6 +55,11 @@ function updateStatsDisplay(data) {
 
     if (vendorsCount) vendorsCount.textContent = data.vendors?.total || 0;
     if (activeVendors) activeVendors.textContent = data.vendors?.active || 0;
+    
+    // Add food vendors display update
+    if (foodVendorsCount) foodVendorsCount.textContent = data.foodVendors?.total || 0;
+    if (activeFoodVendors) activeFoodVendors.textContent = data.foodVendors?.active || 0;
+    
     if (teamsCount) teamsCount.textContent = data.teams?.total || 0;
     if (approvedTeams) approvedTeams.textContent = data.teams?.approved || 0;
     if (sponsorsCount) sponsorsCount.textContent = data.sponsors?.total || 0;
@@ -110,6 +120,7 @@ function updateActivityDisplay(activities) {
 function getActivityIcon(type) {
     const icons = {
         'vendor': '🏪',
+        'food-vendor': '🍔',
         'team': '👥',
         'sponsor': '🤝',
         'payment': '💰',
