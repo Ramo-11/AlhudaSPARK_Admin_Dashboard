@@ -142,7 +142,7 @@ function updatePlayersTable() {
                 ${player.parentInfo?.email || ''}<br>
                 <small>${player.parentInfo?.phone || ''}</small>
             </td>
-            <td>$${player.registrationFee || 200}</td>
+            <td>$${player.registrationFee || 275}</td>
             <td>
                 <span class="status-badge status-${player.registrationStatus}">${player.registrationStatus}</span>
                 ${player.paymentStatus !== 'completed' ? '<br><small style="color: #dc3545;">Payment: ' + player.paymentStatus + '</small>' : ''}
@@ -283,7 +283,7 @@ async function handleFormSubmit(e) {
         },
         comments: formData.get('comments'),
         waiverAccepted: formData.get('waiverAccepted') === 'on',
-        registrationFee: 200,
+        registrationFee: 275,
         paymentMethod: 'pending'
     };
     
@@ -540,7 +540,7 @@ function generatePlayersCSV(players) {
         player.parentInfo?.name || '',
         player.parentInfo?.email || '',
         player.parentInfo?.phone || '',
-        player.registrationFee || 200,
+        player.registrationFee || 275,
         player.paymentStatus,
         player.registrationStatus,
         player.comments || '',

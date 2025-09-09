@@ -61,7 +61,7 @@ exports.create = async (req, res) => {
                 phone: req.body.parentInfo?.phone
             },
             comments: req.body.comments,
-            registrationFee: req.body.registrationFee || 200,
+            registrationFee: req.body.registrationFee || 275,
             paymentMethod: req.body.paymentMethod || 'pending',
             paymentStatus: 'pending',
             waiverAccepted: req.body.waiverAccepted || false,

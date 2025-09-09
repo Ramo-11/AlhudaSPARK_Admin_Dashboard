@@ -77,7 +77,7 @@ const playerSchema = new mongoose.Schema({
     registrationFee: {
         type: Number,
         required: true,
-        default: 200
+        default: 275
     },
     
     // Payment Information
