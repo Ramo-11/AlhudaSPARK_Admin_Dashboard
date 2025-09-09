@@ -91,7 +91,7 @@ const vendorSchema = new mongoose.Schema({
     paymentStatus: {
         type: String,
         required: true,
-        enum: ['pending', 'processing', 'completed', 'failed', 'cancelled'],
+        enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'rejected'],
         default: 'pending'
     },
     transactionId: {
@@ -109,6 +109,14 @@ const vendorSchema = new mongoose.Schema({
         maxlength: 300
     },
     
+    discountApplied: {
+        type: Number,
+        default: null
+    },
+    originalPrice: {
+        type: Number,
+        default: null
+    },
     // Terms Acceptance
     acceptedTerms: {
         type: Boolean,
@@ -154,8 +162,8 @@ vendorSchema.statics.generateVendorId = function() {
 // Static method to calculate booth pricing
 vendorSchema.statics.calculateBoothPrice = function(boothType, quantity) {
     const pricing = {
-        premium: { 1: 700, 2: 1200, 3: 1800 },
-        standard: { 1: 400, 2: 700, 3: 1000 }
+        premium: { 1: 600, 2: 1100, 3: 1500 },
+        standard: { 1: 350, 2: 750, 3: 1000 }
     };
     
     return pricing[boothType]?.[quantity] || 0;
