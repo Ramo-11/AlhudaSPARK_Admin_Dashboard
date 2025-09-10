@@ -102,10 +102,10 @@ function updateFoodVendorsTable() {
             <td><strong>${vendor.businessName}</strong></td>
             <td>${vendor.contactPerson}</td>
             <td>${vendor.email}</td>
-            <td style="font-size: 0.85rem; max-width: 200px;">
+            <td style="font-size: 0.85rem;">
                 ${vendor.menuDescription ? 
-                    (vendor.menuDescription.length > 60 ? 
-                        vendor.menuDescription.substring(0, 60) + '...' : 
+                    (vendor.menuDescription.length > 1000 ? 
+                        vendor.menuDescription.substring(0, 1000) + '...' : 
                         vendor.menuDescription) : 
                     'N/A'}
             </td>

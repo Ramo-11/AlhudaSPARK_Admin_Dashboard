@@ -845,10 +845,10 @@ body {
 
 /* Table cell text truncation */
 .data-table td {
-    max-width: 250px;
-    overflow: hidden;
+    max-width: none;
+    overflow: visible;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 /* Small text for descriptions */

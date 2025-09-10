@@ -148,10 +148,10 @@ function updateVendorsTable() {
             <td>${vendor.contactPerson}</td>
             <td>${vendor.email}</td>
             <td>${formatVendorType(vendor.vendorType)}</td>
-            <td style="font-size: 0.85rem; max-width: 200px;">
+            <td style="font-size: 0.85rem;">
                 ${vendor.businessDescription ? 
-                    (vendor.businessDescription.length > 60 ? 
-                        vendor.businessDescription.substring(0, 60) + '...' : 
+                    (vendor.businessDescription.length > 1000 ? 
+                        vendor.businessDescription.substring(0, 1000) + '...' : 
                         vendor.businessDescription) : 
                     'N/A'}
             </td>
