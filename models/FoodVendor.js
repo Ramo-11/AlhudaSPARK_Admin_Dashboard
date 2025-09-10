@@ -51,7 +51,18 @@ const foodVendorSchema = new mongoose.Schema({
     vendorFee: {
         type: Number,
         required: true,
-        default: 3000
+        default: function() {
+            return this.vendorType === 'refreshment' ? 5000 : 3000;
+        }
+    },
+
+    zelleReceipt: {
+        type: String,
+        default: ''
+    },
+    zelleReceiptPublicId: {
+        type: String,
+        default: ''
     },
     
     paymentMethod: {
@@ -72,6 +83,13 @@ const foodVendorSchema = new mongoose.Schema({
     paymentDate: {
         type: Date,
         default: null
+    },
+
+    vendorType: {
+        type: String,
+        required: true,
+        enum: ['food', 'refreshment'],
+        default: 'food'
     },
 
     specialRequirements: {

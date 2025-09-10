@@ -103,6 +103,15 @@ const vendorSchema = new mongoose.Schema({
         default: null
     },
 
+    zelleReceipt: {
+        type: String,
+        default: ''
+    },
+    zelleReceiptPublicId: {
+        type: String,
+        default: ''
+    },
+
     specialRequirements: {
         type: String,
         default: '',
