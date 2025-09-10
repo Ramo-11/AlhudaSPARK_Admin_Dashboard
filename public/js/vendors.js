@@ -124,7 +124,6 @@ async function loadVendors() {
     }
 }
 
-// Update vendors table
 function updateVendorsTable() {
     const tbody = document.getElementById('vendors-table-body');
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -134,7 +133,7 @@ function updateVendorsTable() {
     if (paginatedVendors.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 2rem;">
+                <td colspan="10" style="text-align: center; padding: 2rem;">
                     No vendors found
                 </td>
             </tr>
@@ -147,12 +146,24 @@ function updateVendorsTable() {
             <td>${vendor.vendorId}</td>
             <td><strong>${vendor.businessName}</strong></td>
             <td>${vendor.contactPerson}</td>
+            <td>${vendor.email}</td>
             <td>${formatVendorType(vendor.vendorType)}</td>
+            <td style="font-size: 0.85rem; max-width: 200px;">
+                ${vendor.businessDescription ? 
+                    (vendor.businessDescription.length > 60 ? 
+                        vendor.businessDescription.substring(0, 60) + '...' : 
+                        vendor.businessDescription) : 
+                    'N/A'}
+            </td>
+            <td>${vendor.paymentMethod ? vendor.paymentMethod.toUpperCase() : 'N/A'}</td>
             <td>${formatSelectedBooths(vendor.booths)}</td>
             <td>$${vendor.totalBoothPrice?.toLocaleString() || '0'}</td>
             <td><span class="status-badge status-${vendor.paymentStatus}">${vendor.paymentStatus}</span></td>
             <td>
                 <div class="action-buttons">
+                    ${vendor.paymentMethod === 'zelle' && vendor.zelleReceipt ? 
+                        `<button class="btn-small btn-info" onclick="viewReceipt('${vendor.zelleReceipt}', '${vendor.businessName}')">Receipt</button>` : 
+                        ''}
                     <button class="btn-small btn-primary" onclick="editVendor('${vendor.vendorId}')">Edit</button>
                     <button class="btn-small btn-info" onclick="updatePaymentStatus('${vendor.vendorId}')">Payment</button>
                     <button class="btn-small btn-danger" onclick="confirmDeleteVendor('${vendor.vendorId}')">Delete</button>
@@ -333,6 +344,28 @@ async function handlePaymentStatusUpdate(e) {
 function closePaymentModal() {
     document.getElementById('payment-modal').style.display = 'none';
     editingVendorId = null;
+}
+
+function viewReceipt(receiptUrl, businessName) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${businessName} - Zelle Receipt</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img src="${receiptUrl}" alt="${businessName} Receipt" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.remove();
+    });
 }
 
 // Handle form submission
@@ -521,7 +554,7 @@ function debounce(func, wait) {
 function showLoading() {
     // Show loading state
     const table = document.getElementById('vendors-table-body');
-    table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+    table.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
 }
 
 function hideLoading() {
