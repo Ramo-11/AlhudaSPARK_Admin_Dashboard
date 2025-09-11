@@ -14,91 +14,53 @@ document.addEventListener('DOMContentLoaded', function() {
 function initVendorsPage() {
     loadVendors();
     setupEventListeners();
-    setupBoothPricing();
 }
 
 // Setup event listeners
 function setupEventListeners() {
-    // Add vendor button
-    document.getElementById('add-vendor-btn').addEventListener('click', openAddVendorModal);
+    const addVendorBtn = document.getElementById('add-vendor-btn');
+    if (addVendorBtn) {
+        addVendorBtn.addEventListener('click', openAddVendorModal);
+    }
     
     // Modal controls
-    document.getElementById('close-modal').addEventListener('click', closeModal);
-    document.getElementById('cancel-btn').addEventListener('click', closeModal);
-    document.getElementById('close-delete-modal').addEventListener('click', closeDeleteModal);
-    document.getElementById('cancel-delete').addEventListener('click', closeDeleteModal);
+    document.getElementById('close-modal')?.addEventListener('click', closeModal);
+    document.getElementById('cancel-btn')?.addEventListener('click', closeModal);
+    document.getElementById('close-delete-modal')?.addEventListener('click', closeDeleteModal);
+    document.getElementById('cancel-delete')?.addEventListener('click', closeDeleteModal);
 
     // Payment modal controls
-    document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
-    document.getElementById('cancel-payment-btn').addEventListener('click', closePaymentModal);
-    document.getElementById('payment-form').addEventListener('submit', handlePaymentStatusUpdate);
+    document.getElementById('close-payment-modal')?.addEventListener('click', closePaymentModal);
+    document.getElementById('cancel-payment-btn')?.addEventListener('click', closePaymentModal);
+    document.getElementById('payment-form')?.addEventListener('submit', handlePaymentStatusUpdate);
 
-    document.getElementById('payment-modal').addEventListener('click', function(e) {
+    document.getElementById('payment-modal')?.addEventListener('click', function(e) {
         if (e.target === this) closePaymentModal();
     });
 
     // Form submission
-    document.getElementById('vendor-form').addEventListener('submit', handleFormSubmit);
+    document.getElementById('vendor-form')?.addEventListener('submit', handleFormSubmit);
     
     // Delete confirmation
-    document.getElementById('confirm-delete').addEventListener('click', handleDelete);
+    document.getElementById('confirm-delete')?.addEventListener('click', handleDelete);
     
     // Filters
-    document.getElementById('type-filter').addEventListener('change', applyFilters);
-    document.getElementById('payment-filter').addEventListener('change', applyFilters);
-    document.getElementById('location-filter').addEventListener('change', applyFilters);
-    document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
+    document.getElementById('type-filter')?.addEventListener('change', applyFilters);
+    document.getElementById('payment-filter')?.addEventListener('change', applyFilters);
+    document.getElementById('location-filter')?.addEventListener('change', applyFilters);
+    document.getElementById('search-input')?.addEventListener('input', debounce(applyFilters, 300));
     
     // Export button
-    document.getElementById('export-btn').addEventListener('click', exportVendors);
+    document.getElementById('export-btn')?.addEventListener('click', exportVendors);
     
     // Modal backdrop click
-    document.getElementById('vendor-modal').addEventListener('click', function(e) {
+    document.getElementById('vendor-modal')?.addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
     
-    document.getElementById('delete-modal').addEventListener('click', function(e) {
+    document.getElementById('delete-modal')?.addEventListener('click', function(e) {
         if (e.target === this) closeDeleteModal();
     });
-    
-    // Booth location change - update pricing
-    document.querySelector('select[name="boothLocation"]').addEventListener('change', updateBoothPricing);
-}
-
-// Setup booth pricing display
-function setupBoothPricing() {
-    const boothPricing = {
-        'back': 750,
-        'central': 1100,
-        'side_corner': 1400,
-        'front_corner': 1600
-    };
-    
-    const locationSelect = document.querySelector('select[name="boothLocation"]');
-    const options = locationSelect.querySelectorAll('option');
-    
-    options.forEach(option => {
-        const value = option.value;
-        if (value && boothPricing[value]) {
-            option.textContent = option.textContent.replace(/\$[\d,]+/, `$${boothPricing[value].toLocaleString()}`);
-        }
-    });
-}
-
-// Update booth pricing when location changes
-function updateBoothPricing() {
-    const locationSelect = document.querySelector('select[name="boothLocation"]');
-    const selectedLocation = locationSelect.value;
-    
-    const boothPricing = {
-        'back': 750,
-        'central': 1100,
-        'side_corner': 1400,
-        'front_corner': 1600
-    };
-    
-    // You could update a price display field here if needed
-    console.log('Selected location:', selectedLocation, 'Price:', boothPricing[selectedLocation] || 0);
 }
 
 // Load vendors from API
@@ -274,20 +236,17 @@ function editVendor(vendorId) {
     editingVendorId = vendorId;
     document.getElementById('modal-title').textContent = 'Edit Vendor';
     
-    // Populate form
+    // Populate form with matching field names
     const form = document.getElementById('vendor-form');
     form.businessName.value = vendor.businessName || '';
     form.contactPerson.value = vendor.contactPerson || '';
     form.email.value = vendor.email || '';
     form.phone.value = vendor.phone || '';
     form.vendorType.value = vendor.vendorType || '';
-    form.boothLocation.value = vendor.boothLocation || '';
     form.website.value = vendor.website || '';
     form.paymentMethod.value = vendor.paymentMethod || '';
     form.address.value = vendor.address || '';
     form.businessDescription.value = vendor.businessDescription || '';
-    form.requiresElectricity.checked = vendor.requiresElectricity || false;
-    form.requiresWater.checked = vendor.requiresWater || false;
     form.specialRequirements.value = vendor.specialRequirements || '';
     form.comments.value = vendor.comments || '';
     
@@ -374,19 +333,6 @@ async function handleFormSubmit(e) {
     
     const formData = new FormData(e.target);
     const vendorData = Object.fromEntries(formData.entries());
-    
-    // Convert checkboxes
-    vendorData.requiresElectricity = formData.has('requiresElectricity');
-    vendorData.requiresWater = formData.has('requiresWater');
-    
-    // Set booth price based on location
-    const boothPricing = {
-        'back': 750,
-        'central': 1100,
-        'side_corner': 1400,
-        'front_corner': 1600
-    };
-    vendorData.boothPrice = boothPricing[vendorData.boothLocation] || 0;
     
     try {
         showLoading();
