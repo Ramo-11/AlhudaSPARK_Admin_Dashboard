@@ -8,7 +8,7 @@ let isEditing = false;
 let editingTeamId = null;
 let playerCount = 0;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initTeamsPage();
 });
 
@@ -22,7 +22,7 @@ function initTeamsPage() {
 function setupEventListeners() {
     // Add team button
     document.getElementById('add-team-btn').addEventListener('click', openAddTeamModal);
-    
+
     // Modal controls
     document.getElementById('close-modal').addEventListener('click', closeModal);
     document.getElementById('cancel-btn').addEventListener('click', closeModal);
@@ -32,55 +32,55 @@ function setupEventListeners() {
     document.getElementById('cancel-status').addEventListener('click', closeStatusModal);
     document.getElementById('close-payment-modal').addEventListener('click', closePaymentModal);
     document.getElementById('cancel-payment').addEventListener('click', closePaymentModal);
-    
+
     // Form submission
     document.getElementById('team-form').addEventListener('submit', handleFormSubmit);
-    
+
     // Delete, status and payment confirmation
     document.getElementById('confirm-delete').addEventListener('click', handleDelete);
     document.getElementById('confirm-status').addEventListener('click', handleStatusUpdate);
     document.getElementById('confirm-payment').addEventListener('click', handlePaymentUpdate);
-    
+
     // Filters
     document.getElementById('tier-filter').addEventListener('change', applyFilters);
     document.getElementById('gender-filter').addEventListener('change', applyFilters);
     document.getElementById('status-filter').addEventListener('change', applyFilters);
     document.getElementById('payment-filter').addEventListener('change', applyFilters);
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
-    
+
     // Export button
     document.getElementById('export-btn').addEventListener('click', exportTeams);
-    
+
     // Player management
     document.getElementById('add-player-btn').addEventListener('click', addPlayerForm);
-    
+
     // Tier change - update registration fee and photo requirements
-    document.querySelector('select[name="tier"]').addEventListener('change', function() {
+    document.querySelector('select[name="tier"]').addEventListener('change', function () {
         updateRegistrationFee();
         updateIdPhotoRequirement();
     });
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (e.target.classList.contains('view-ids-btn')) {
             const teamId = e.target.dataset.teamId;
             showTeamIDsModal(teamId);
         }
     });
-    
+
     // Modal backdrop clicks
-    document.getElementById('team-modal').addEventListener('click', function(e) {
+    document.getElementById('team-modal').addEventListener('click', function (e) {
         if (e.target === this) closeModal();
     });
-    
-    document.getElementById('delete-modal').addEventListener('click', function(e) {
+
+    document.getElementById('delete-modal').addEventListener('click', function (e) {
         if (e.target === this) closeDeleteModal();
     });
-    
-    document.getElementById('status-modal').addEventListener('click', function(e) {
+
+    document.getElementById('status-modal').addEventListener('click', function (e) {
         if (e.target === this) closeStatusModal();
     });
-    
-    document.getElementById('payment-modal').addEventListener('click', function(e) {
+
+    document.getElementById('payment-modal').addEventListener('click', function (e) {
         if (e.target === this) closePaymentModal();
     });
 }
@@ -88,18 +88,21 @@ function setupEventListeners() {
 // Setup registration fees display
 function setupRegistrationFees() {
     const registrationFees = {
-        'elementary': 350,
-        'middle': 350,
-        'high_school': 350
+        elementary: 350,
+        middle: 350,
+        high_school: 350,
     };
-    
+
     const tierSelect = document.querySelector('select[name="tier"]');
     const options = tierSelect.querySelectorAll('option');
-    
-    options.forEach(option => {
+
+    options.forEach((option) => {
         const value = option.value;
         if (value && registrationFees[value]) {
-            option.textContent = option.textContent.replace(/\$[\d,]+/, `$${registrationFees[value]}`);
+            option.textContent = option.textContent.replace(
+                /\$[\d,]+/,
+                `$${registrationFees[value]}`
+            );
         }
     });
 }
@@ -108,14 +111,14 @@ function setupRegistrationFees() {
 function updateRegistrationFee() {
     const tierSelect = document.querySelector('select[name="tier"]');
     const selectedTier = tierSelect.value;
-    
+
     const registrationFees = {
-        'elementary': 350,
-        'middle': 350,
-        'high_school': 350,
-        'open': 350
+        elementary: 350,
+        middle: 350,
+        high_school: 350,
+        open: 350,
     };
-    
+
     console.log('Selected tier:', selectedTier, 'Fee:', registrationFees[selectedTier] || 0);
 }
 
@@ -125,7 +128,7 @@ async function loadTeams() {
         showLoading();
         const response = await fetch('/api/teams');
         const result = await response.json();
-        
+
         if (result.success) {
             currentTeams = result.data;
             filteredTeams = [...currentTeams];
@@ -148,7 +151,7 @@ function updateTeamsTable() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedTeams = filteredTeams.slice(startIndex, endIndex);
-    
+
     if (paginatedTeams.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -159,8 +162,10 @@ function updateTeamsTable() {
         `;
         return;
     }
-    
-    tbody.innerHTML = paginatedTeams.map(team => `
+
+    tbody.innerHTML = paginatedTeams
+        .map(
+            (team) => `
         <tr>
             <td>${team.teamId}</td>
             <td><strong>${team.teamName}</strong></td>
@@ -171,20 +176,43 @@ function updateTeamsTable() {
             <td>${team.players?.length || 0}</td>
             <td>$${team.registrationFee?.toLocaleString() || '0'}</td>
             <td>
-                <span class="status-badge status-${team.registrationStatus}">${team.registrationStatus}</span>
-                ${team.paymentStatus !== 'completed' ? '<br><small style="color: #dc3545;">Payment Pending</small>' : ''}
+                <span class="status-badge status-${team.registrationStatus}">${
+                team.registrationStatus
+            }</span>
+                ${
+                    team.paymentStatus !== 'completed'
+                        ? '<br><small style="color: #dc3545;">Payment Pending</small>'
+                        : ''
+                }
             </td>
             <td>
                 <div class="action-buttons">
-                <button class="btn-small btn-info view-ids-btn" data-team-id="${team.teamId}">View IDs</button>
-                    <button class="btn-small btn-primary" onclick="editTeam('${team.teamId}')">Edit</button>
-                    <button class="btn-small btn-secondary" onclick="updateTeamStatus('${team.teamId}')">Status</button>
-                    <button class="btn-small btn-secondary" onclick="updatePaymentStatus('${team.teamId}')">Payment</button>
-                    <button class="btn-small btn-danger" onclick="confirmDeleteTeam('${team.teamId}')">Delete</button>
+                ${
+                    team.paymentMethod === 'zelle' && team.zelleReceipt
+                        ? `<button class="btn-small btn-info" onclick="viewReceipt('${team.zelleReceipt}', '${team.teamName}')">Receipt</button>`
+                        : ''
+                }
+                <button class="btn-small btn-info view-ids-btn" data-team-id="${
+                    team.teamId
+                }">View IDs</button>
+                    <button class="btn-small btn-primary" onclick="editTeam('${
+                        team.teamId
+                    }')">Edit</button>
+                    <button class="btn-small btn-secondary" onclick="updateTeamStatus('${
+                        team.teamId
+                    }')">Status</button>
+                    <button class="btn-small btn-secondary" onclick="updatePaymentStatus('${
+                        team.teamId
+                    }')">Payment</button>
+                    <button class="btn-small btn-danger" onclick="confirmDeleteTeam('${
+                        team.teamId
+                    }')">Delete</button>
                 </div>
             </td>
         </tr>
-    `).join('');
+    `
+        )
+        .join('');
 }
 
 // Apply filters
@@ -194,22 +222,23 @@ function applyFilters() {
     const statusFilter = document.getElementById('status-filter').value;
     const paymentFilter = document.getElementById('payment-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    
-    filteredTeams = currentTeams.filter(team => {
+
+    filteredTeams = currentTeams.filter((team) => {
         const matchesTier = !tierFilter || team.tier === tierFilter;
         const matchesGender = !genderFilter || team.gender === genderFilter;
         const matchesStatus = !statusFilter || team.registrationStatus === statusFilter;
         const matchesPayment = !paymentFilter || team.paymentStatus === paymentFilter;
-        const matchesSearch = !searchTerm || 
+        const matchesSearch =
+            !searchTerm ||
             team.teamName.toLowerCase().includes(searchTerm) ||
             team.organization.toLowerCase().includes(searchTerm) ||
             team.coachName.toLowerCase().includes(searchTerm) ||
             team.coachEmail.toLowerCase().includes(searchTerm) ||
             team.teamId.toLowerCase().includes(searchTerm);
-        
+
         return matchesTier && matchesGender && matchesStatus && matchesPayment && matchesSearch;
     });
-    
+
     currentPage = 1;
     updateTeamsTable();
     updatePagination();
@@ -219,18 +248,20 @@ function applyFilters() {
 function updatePagination() {
     const totalPages = Math.ceil(filteredTeams.length / itemsPerPage);
     const paginationContainer = document.getElementById('pagination');
-    
+
     if (totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
     }
-    
+
     let paginationHTML = '';
-    
+
     if (currentPage > 1) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">Previous</button>`;
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${
+            currentPage - 1
+        })">Previous</button>`;
     }
-    
+
     for (let i = 1; i <= totalPages; i++) {
         if (i === currentPage) {
             paginationHTML += `<button class="pagination-btn active">${i}</button>`;
@@ -240,11 +271,13 @@ function updatePagination() {
             paginationHTML += `<span class="pagination-ellipsis">...</span>`;
         }
     }
-    
+
     if (currentPage < totalPages) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">Next</button>`;
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${
+            currentPage + 1
+        })">Next</button>`;
     }
-    
+
     paginationContainer.innerHTML = paginationHTML;
 }
 
@@ -260,16 +293,16 @@ function openAddTeamModal() {
     isEditing = false;
     editingTeamId = null;
     playerCount = 0;
-    
+
     document.getElementById('modal-title').textContent = 'Add Team';
     document.getElementById('team-form').reset();
     document.getElementById('players-container').innerHTML = '';
-    
+
     // Add initial 5 player forms
     for (let i = 0; i < 5; i++) {
         addPlayerForm();
     }
-    
+
     document.getElementById('team-modal').style.display = 'block';
 }
 
@@ -279,34 +312,34 @@ function addPlayerForm() {
         showToast('Maximum 10 players allowed per team', 'warning');
         return;
     }
-    
+
     const template = document.getElementById('player-template');
     const playerForm = template.content.cloneNode(true);
-    
+
     playerCount++;
     const playerNumber = playerForm.querySelector('.player-number');
     playerNumber.textContent = playerCount;
-    
+
     // Set unique names for inputs
     const inputs = playerForm.querySelectorAll('input');
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
         const originalName = input.name;
         input.name = `${originalName}_${playerCount}`;
     });
-    
+
     // Add remove button functionality
     const removeBtn = playerForm.querySelector('.remove-player-btn');
     if (playerCount <= 5) {
         removeBtn.style.display = 'none'; // Can't remove first 5 players
     } else {
-        removeBtn.addEventListener('click', function() {
+        removeBtn.addEventListener('click', function () {
             removePlayerForm(this.closest('.player-form'));
         });
     }
-    
+
     // Update ID photo requirement based on current tier
     updateIdPhotoRequirement(playerForm);
-    
+
     document.getElementById('players-container').appendChild(playerForm);
 }
 
@@ -323,14 +356,14 @@ function updatePlayerNumbers() {
     playerForms.forEach((form, index) => {
         const playerNumber = form.querySelector('.player-number');
         playerNumber.textContent = index + 1;
-        
+
         // Update input names
         const inputs = form.querySelectorAll('input');
-        inputs.forEach(input => {
+        inputs.forEach((input) => {
             const baseName = input.name.split('_')[0];
             input.name = `${baseName}_${index + 1}`;
         });
-        
+
         // Hide remove button for first 5 players
         const removeBtn = form.querySelector('.remove-player-btn');
         removeBtn.style.display = index < 5 ? 'none' : 'inline-block';
@@ -339,15 +372,15 @@ function updatePlayerNumbers() {
 
 // Edit team
 function editTeam(teamId) {
-    const team = currentTeams.find(t => t.teamId === teamId);
+    const team = currentTeams.find((t) => t.teamId === teamId);
     if (!team) return;
-    
+
     isEditing = true;
     editingTeamId = teamId;
     playerCount = 0;
-    
+
     document.getElementById('modal-title').textContent = 'Edit Team';
-    
+
     // Populate form
     const form = document.getElementById('team-form');
     form.teamName.value = team.teamName || '';
@@ -363,25 +396,26 @@ function editTeam(teamId) {
     form.emergencyContactRelationship.value = team.emergencyContact?.relationship || '';
     form.specialRequirements.value = team.specialRequirements || '';
     form.comments.value = team.comments || '';
-    
+
     // Clear and populate players
     document.getElementById('players-container').innerHTML = '';
-    
+
     if (team.players && team.players.length > 0) {
         team.players.forEach((player, index) => {
             addPlayerForm();
             const playerForm = document.querySelector('.player-form:last-child');
             playerForm.querySelector('input[name^="playerName"]').value = player.playerName || '';
-            playerForm.querySelector('input[name^="dateOfBirth"]').value = 
-                player.dateOfBirth ? new Date(player.dateOfBirth).toISOString().split('T')[0] : '';
-            
+            playerForm.querySelector('input[name^="dateOfBirth"]').value = player.dateOfBirth
+                ? new Date(player.dateOfBirth).toISOString().split('T')[0]
+                : '';
+
             // Show existing photo if available
             if (player.idPhotoUrl) {
                 const existingPhotoDiv = playerForm.querySelector('.existing-photo');
                 const thumbnail = playerForm.querySelector('.photo-thumbnail');
                 const viewBtn = playerForm.querySelector('.view-photo-btn');
                 const fileInput = playerForm.querySelector('.id-photo-input');
-                
+
                 if (existingPhotoDiv && thumbnail && viewBtn) {
                     thumbnail.src = player.idPhotoUrl;
                     existingPhotoDiv.style.display = 'block';
@@ -389,13 +423,15 @@ function editTeam(teamId) {
 
                     const fileInput = playerForm.querySelector('.id-photo-input');
                     fileInput.required = false; // <-- important
-                    
+
                     // Add text to show existing file
                     const existingText = document.createElement('small');
                     existingText.style.color = '#28a745';
                     existingText.style.display = 'block';
                     existingText.style.marginTop = '0.25rem';
-                    existingText.textContent = `✓ Current: ${player.idPhotoOriginalName || 'ID Photo uploaded'}`;
+                    existingText.textContent = `✓ Current: ${
+                        player.idPhotoOriginalName || 'ID Photo uploaded'
+                    }`;
                     fileInput.parentNode.insertBefore(existingText, existingPhotoDiv);
                 }
             }
@@ -406,30 +442,30 @@ function editTeam(teamId) {
             addPlayerForm();
         }
     }
-    
+
     document.getElementById('team-modal').style.display = 'block';
 }
 
 // Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     // Use FormData to handle file uploads
     const formData = new FormData(e.target);
-    
+
     // Add player data in the format expected by the backend
     const players = [];
     for (let i = 1; i <= playerCount; i++) {
         const playerName = formData.get(`playerName_${i}`);
         const dateOfBirth = formData.get(`dateOfBirth_${i}`);
-        
+
         if (playerName && dateOfBirth) {
             players.push({
                 playerName,
                 dateOfBirth,
-                ageAtRegistration: calculateAge(new Date(dateOfBirth))
+                ageAtRegistration: calculateAge(new Date(dateOfBirth)),
             });
-            
+
             // Handle file upload for this player
             const idPhoto = formData.get(`idPhoto_${i}`);
             if (idPhoto && idPhoto.size > 0) {
@@ -450,48 +486,53 @@ async function handleFormSubmit(e) {
         formData.delete(`players[${index}][dateOfBirth]`);
         formData.delete(`players[${index}][ageAtRegistration]`);
     });
-    
+
     // Validate ID photos for high school tier
     if (formData.get('tier') === 'high_school') {
         const missingIds = players.filter((player, index) => {
             const hasNewFile = formData.get(`players[${index}][idPhoto]`);
-            const existingPlayer = isEditing ? currentTeams.find(t => t.teamId === editingTeamId)?.players?.[index] : null;
+            const existingPlayer = isEditing
+                ? currentTeams.find((t) => t.teamId === editingTeamId)?.players?.[index]
+                : null;
             const hasExistingPhoto = existingPlayer?.idPhotoUrl;
             return !hasNewFile && !hasExistingPhoto;
         });
-        
+
         if (missingIds.length > 0) {
             showToast('ID photos are required for all high school players', 'error');
             return;
         }
     }
-    
+
     // Validate player count
     if (players.length < 1) {
         showToast('Team must have at least 1 player', 'error');
         return;
     }
-    
+
     if (players.length > 10) {
         showToast('Team cannot have more than 10 players', 'error');
         return;
     }
-    
+
     try {
         showLoading();
-        
+
         const url = isEditing ? `/api/teams/${editingTeamId}` : '/api/teams';
         const method = isEditing ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method,
-            body: formData // Send FormData instead of JSON
+            body: formData, // Send FormData instead of JSON
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
-            showToast(isEditing ? 'Team updated successfully' : 'Team created successfully', 'success');
+            showToast(
+                isEditing ? 'Team updated successfully' : 'Team created successfully',
+                'success'
+            );
             closeModal();
             loadTeams();
         } else {
@@ -507,9 +548,9 @@ async function handleFormSubmit(e) {
 
 // Update team status
 function updateTeamStatus(teamId) {
-    const team = currentTeams.find(t => t.teamId === teamId);
+    const team = currentTeams.find((t) => t.teamId === teamId);
     if (!team) return;
-    
+
     editingTeamId = teamId;
     document.getElementById('new-status').value = team.registrationStatus;
     document.getElementById('status-notes').value = '';
@@ -520,23 +561,23 @@ function updateTeamStatus(teamId) {
 async function handleStatusUpdate() {
     const newStatus = document.getElementById('new-status').value;
     const notes = document.getElementById('status-notes').value;
-    
+
     try {
         showLoading();
-        
+
         const response = await fetch(`/api/teams/${editingTeamId}/status`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 registrationStatus: newStatus,
-                notes: notes
-            })
+                notes: notes,
+            }),
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Team status updated successfully', 'success');
             closeStatusModal();
@@ -562,13 +603,13 @@ function confirmDeleteTeam(teamId) {
 async function handleDelete() {
     try {
         showLoading();
-        
+
         const response = await fetch(`/api/teams/${editingTeamId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Team deleted successfully', 'success');
             closeDeleteModal();
@@ -611,13 +652,25 @@ function exportTeams() {
 // Generate CSV content
 function generateTeamsCSV(teams) {
     const headers = [
-        'Team ID', 'Team Name', 'Organization', 'City', 'Tier', 'Gender',
-        'Coach Name', 'Coach Email', 'Coach Phone', 'Registration Fee',
-        'Registration Status', 'Payment Status', 'Player Count',
-        'Emergency Contact Name', 'Emergency Contact Phone', 'Special Requirements'
+        'Team ID',
+        'Team Name',
+        'Organization',
+        'City',
+        'Tier',
+        'Gender',
+        'Coach Name',
+        'Coach Email',
+        'Coach Phone',
+        'Registration Fee',
+        'Registration Status',
+        'Payment Status',
+        'Player Count',
+        'Emergency Contact Name',
+        'Emergency Contact Phone',
+        'Special Requirements',
     ];
-    
-    const rows = teams.map(team => [
+
+    const rows = teams.map((team) => [
         team.teamId,
         team.teamName,
         team.organization,
@@ -633,11 +686,11 @@ function generateTeamsCSV(teams) {
         team.players?.length || 0,
         team.emergencyContact?.name || '',
         team.emergencyContact?.phone || '',
-        team.specialRequirements
+        team.specialRequirements,
     ]);
-    
+
     return [headers, ...rows]
-        .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+        .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(','))
         .join('\n');
 }
 
@@ -647,20 +700,20 @@ function calculateAge(birthDate) {
     const birth = new Date(birthDate);
     let age = today.getFullYear() - birth.getFullYear();
     const monthDiff = today.getMonth() - birth.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
         age--;
     }
-    
+
     return age;
 }
 
 function formatTier(tier) {
     const tierMap = {
-        'elementary': 'Elementary School',
-        'middle': 'Middle School',
-        'high_school': 'High School',
-        'open': "Men's Open and Alumni"
+        elementary: 'Elementary School',
+        middle: 'Middle School',
+        high_school: 'High School',
+        open: "Men's Open and Alumni",
     };
     return tierMap[tier] || tier;
 }
@@ -695,7 +748,8 @@ function debounce(func, wait) {
 
 function showLoading() {
     const table = document.getElementById('teams-table-body');
-    table.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+    table.innerHTML =
+        '<tr><td colspan="10" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
 }
 
 function hideLoading() {
@@ -712,9 +766,9 @@ function showToast(message, type) {
 
 // Update payment status
 function updatePaymentStatus(teamId) {
-    const team = currentTeams.find(t => t.teamId === teamId);
+    const team = currentTeams.find((t) => t.teamId === teamId);
     if (!team) return;
-    
+
     editingTeamId = teamId;
     document.getElementById('new-payment-status').value = team.paymentStatus || 'pending';
     document.getElementById('payment-method').value = team.paymentMethod || '';
@@ -727,31 +781,31 @@ async function handlePaymentUpdate() {
     const paymentStatus = document.getElementById('new-payment-status').value;
     const paymentMethod = document.getElementById('payment-method').value;
     const transactionId = document.getElementById('transaction-id').value;
-    
+
     try {
         showLoading();
-        
+
         const updateData = {
             paymentStatus,
             paymentMethod,
-            transactionId
+            transactionId,
         };
-        
+
         // Add payment date if marking as completed
         if (paymentStatus === 'completed') {
             updateData.paymentDate = new Date().toISOString();
         }
-        
+
         const response = await fetch(`/api/teams/${editingTeamId}/payment`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(updateData)
+            body: JSON.stringify(updateData),
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Payment status updated successfully', 'success');
             closePaymentModal();
@@ -790,8 +844,31 @@ function viewPhoto(photoUrl, playerName) {
         </div>
     `;
     document.body.appendChild(modal);
-    
-    modal.addEventListener('click', function(e) {
+
+    modal.addEventListener('click', function (e) {
+        if (e.target === this) this.remove();
+    });
+}
+
+// View receipt in modal
+function viewReceipt(receiptUrl, teamName) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>${teamName} - Zelle Receipt</h2>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img src="${receiptUrl}" alt="${teamName} Receipt" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    modal.addEventListener('click', function (e) {
         if (e.target === this) this.remove();
     });
 }
@@ -801,10 +878,10 @@ function updateIdPhotoRequirement(playerForm = null) {
     const tierSelect = document.querySelector('select[name="tier"]');
     const currentTier = tierSelect.value;
     const isHighSchool = currentTier === 'high_school';
-    
+
     const forms = playerForm ? [playerForm] : document.querySelectorAll('.player-form');
-    
-    forms.forEach(f => {
+
+    forms.forEach((f) => {
         const hasExisting = f.querySelector('.existing-photo')?.style.display === 'block';
         const reqMark = f.querySelector('.id-photo-required');
         const input = f.querySelector('.id-photo-input');
@@ -816,9 +893,9 @@ function updateIdPhotoRequirement(playerForm = null) {
 
 // Show team IDs modal
 function showTeamIDsModal(teamId) {
-    const team = currentTeams.find(t => t.teamId === teamId);
+    const team = currentTeams.find((t) => t.teamId === teamId);
     if (!team) return;
-    
+
     const modalHTML = `
         <div id="ids-modal" class="modal" style="display: flex;">
             <div class="modal-content modal-lg">
@@ -828,15 +905,20 @@ function showTeamIDsModal(teamId) {
                 </div>
                 <div class="modal-body">
                     <div class="ids-grid">
-                        ${team.players.map((player, index) => `
+                        ${team.players
+                            .map(
+                                (player, index) => `
                             <div class="player-id-card">
                                 <h4>${player.playerName}</h4>
-                                ${player.idPhotoUrl ? 
-                                    `<img src="${player.idPhotoUrl}" alt="${player.playerName} ID" style="max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer;" onclick="openImageFullscreen('${player.idPhotoUrl}')">` :
-                                    '<p style="color: #666;">No ID photo uploaded</p>'
+                                ${
+                                    player.idPhotoUrl
+                                        ? `<img src="${player.idPhotoUrl}" alt="${player.playerName} ID" style="max-width: 200px; max-height: 200px; border-radius: 8px; cursor: pointer;" onclick="openImageFullscreen('${player.idPhotoUrl}')">`
+                                        : '<p style="color: #666;">No ID photo uploaded</p>'
                                 }
                             </div>
-                        `).join('')}
+                        `
+                            )
+                            .join('')}
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -845,7 +927,7 @@ function showTeamIDsModal(teamId) {
             </div>
         </div>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 

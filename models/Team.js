@@ -1,5 +1,5 @@
 // Team Model for MongoDB
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Player sub-schema
 const playerSchema = new mongoose.Schema(
@@ -16,7 +16,7 @@ const playerSchema = new mongoose.Schema(
         idPhotoUrl: {
             type: String,
             required: function () {
-                return this.parent()?.tier === "high_school";
+                return this.parent()?.tier === 'high_school';
             },
             trim: true,
         },
@@ -27,7 +27,7 @@ const playerSchema = new mongoose.Schema(
         idPhotoOriginalName: {
             type: String,
             required: function () {
-                return this.parent()?.tier === "high_school";
+                return this.parent()?.tier === 'high_school';
             },
             trim: true,
         },
@@ -73,13 +73,13 @@ const teamSchema = new mongoose.Schema(
         tier: {
             type: String,
             required: true,
-            enum: ["elementary", "middle", "high_school", "open"],
+            enum: ['elementary', 'middle', 'high_school', 'open'],
             lowercase: true,
         },
         gender: {
             type: String,
             required: true,
-            enum: ["male", "female"],
+            enum: ['male', 'female'],
             lowercase: true,
         },
 
@@ -111,13 +111,13 @@ const teamSchema = new mongoose.Schema(
                     validator: function (players) {
                         return players.length >= 5;
                     },
-                    message: "Team must have at least 5 players",
+                    message: 'Team must have at least 5 players',
                 },
                 {
                     validator: function (players) {
                         return players.length <= 10;
                     },
-                    message: "Team cannot have more than 10 players",
+                    message: 'Team cannot have more than 10 players',
                 },
             ],
         },
@@ -126,8 +126,8 @@ const teamSchema = new mongoose.Schema(
         registrationStatus: {
             type: String,
             required: true,
-            enum: ["pending", "approved", "rejected", "waitlisted"],
-            default: "pending",
+            enum: ['pending', 'approved', 'rejected', 'waitlisted'],
+            default: 'pending',
         },
 
         // Payment Information
@@ -138,14 +138,22 @@ const teamSchema = new mongoose.Schema(
         },
         paymentMethod: {
             type: String,
-            enum: ["check", "cash", "zelle", "venmo", "stripe"],
+            enum: ['check', 'cash', 'zelle', 'venmo', 'stripe'],
             default: null,
+        },
+        zelleReceipt: {
+            type: String,
+            default: '',
+        },
+        zelleReceiptPublicId: {
+            type: String,
+            default: '',
         },
         paymentStatus: {
             type: String,
             required: true,
-            enum: ["pending", "processing", "completed", "failed", "cancelled"],
-            default: "pending",
+            enum: ['pending', 'processing', 'completed', 'failed', 'cancelled'],
+            default: 'pending',
         },
         transactionId: {
             type: String,
@@ -187,19 +195,19 @@ const teamSchema = new mongoose.Schema(
 
         specialRequirements: {
             type: String,
-            default: "",
+            default: '',
             maxlength: 300,
         },
 
         comments: {
             type: String,
-            default: "",
+            default: '',
         },
 
         // Admin fields
         notes: {
             type: String,
-            default: "",
+            default: '',
         },
         isActive: {
             type: Boolean,
@@ -253,9 +261,7 @@ teamSchema.methods.calculatePlayerAges = function () {
     const currentDate = new Date();
     this.players.forEach((player) => {
         const birthDate = new Date(player.dateOfBirth);
-        const age = Math.floor(
-            (currentDate - birthDate) / (365.25 * 24 * 60 * 60 * 1000)
-        );
+        const age = Math.floor((currentDate - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
         player.ageAtRegistration = age;
     });
 };
@@ -273,15 +279,13 @@ teamSchema.methods.validatePlayerAgesForTier = function () {
     if (!range) return false;
 
     return this.players.every(
-        (player) =>
-            player.ageAtRegistration >= range.min &&
-            player.ageAtRegistration <= range.max
+        (player) => player.ageAtRegistration >= range.min && player.ageAtRegistration <= range.max
     );
 };
 
 // Instance method to mark payment as complete
 teamSchema.methods.markPaymentComplete = function (transactionId) {
-    this.paymentStatus = "completed";
+    this.paymentStatus = 'completed';
     this.transactionId = transactionId;
     this.paymentDate = new Date();
     return this.save();
@@ -289,7 +293,7 @@ teamSchema.methods.markPaymentComplete = function (transactionId) {
 
 // Instance method to approve team
 teamSchema.methods.approveTeam = function (verifiedBy = null) {
-    this.registrationStatus = "approved";
+    this.registrationStatus = 'approved';
     this.documentsVerified = true;
     this.verifiedBy = verifiedBy;
     this.verifiedDate = new Date();
@@ -308,7 +312,7 @@ teamSchema.statics.findByTierAndGender = function (tier, gender) {
     return this.find({
         tier: tier.toLowerCase(),
         gender: gender.toLowerCase(),
-        registrationStatus: "approved",
+        registrationStatus: 'approved',
         isActive: true,
     }).sort({ createdAt: -1 });
 };
@@ -316,7 +320,7 @@ teamSchema.statics.findByTierAndGender = function (tier, gender) {
 // Static method to find teams by organization
 teamSchema.statics.findByOrganization = function (organization) {
     return this.find({
-        organization: new RegExp(organization, "i"),
+        organization: new RegExp(organization, 'i'),
         isActive: true,
     }).sort({ createdAt: -1 });
 };
@@ -324,8 +328,8 @@ teamSchema.statics.findByOrganization = function (organization) {
 // Static method to find approved teams
 teamSchema.statics.findApprovedTeams = function () {
     return this.find({
-        registrationStatus: "approved",
-        paymentStatus: "completed",
+        registrationStatus: 'approved',
+        paymentStatus: 'completed',
         isActive: true,
     }).sort({ tier: 1, gender: 1, createdAt: -1 });
 };
@@ -333,61 +337,52 @@ teamSchema.statics.findApprovedTeams = function () {
 // Static method to find pending registrations
 teamSchema.statics.findPendingRegistrations = function () {
     return this.find({
-        registrationStatus: "pending",
+        registrationStatus: 'pending',
     }).sort({ createdAt: -1 });
 };
 
 // Virtual for tier display name
-teamSchema.virtual("tierDisplayName").get(function () {
+teamSchema.virtual('tierDisplayName').get(function () {
     const tierMap = {
-        elementary: "Elementary School",
-        middle: "Middle School",
-        high_school: "High School",
-        open: "Men’s Open/Alumni",
+        elementary: 'Elementary School',
+        middle: 'Middle School',
+        high_school: 'High School',
+        open: 'Men’s Open/Alumni',
     };
     return tierMap[this.tier] || this.tier;
 });
 
 // Virtual for gender display name
-teamSchema.virtual("genderDisplayName").get(function () {
+teamSchema.virtual('genderDisplayName').get(function () {
     return this.gender.charAt(0).toUpperCase() + this.gender.slice(1);
 });
 
 // Virtual for player count
-teamSchema.virtual("playerCount").get(function () {
+teamSchema.virtual('playerCount').get(function () {
     return this.players.length;
 });
 
 // Virtual for team status display
-teamSchema.virtual("statusDisplay").get(function () {
-    if (
-        this.registrationStatus === "approved" &&
-        this.paymentStatus === "completed"
-    ) {
-        return "Ready to Play";
+teamSchema.virtual('statusDisplay').get(function () {
+    if (this.registrationStatus === 'approved' && this.paymentStatus === 'completed') {
+        return 'Ready to Play';
     }
-    if (
-        this.registrationStatus === "approved" &&
-        this.paymentStatus === "pending"
-    ) {
-        return "Payment Pending";
+    if (this.registrationStatus === 'approved' && this.paymentStatus === 'pending') {
+        return 'Payment Pending';
     }
-    return (
-        this.registrationStatus.charAt(0).toUpperCase() +
-        this.registrationStatus.slice(1)
-    );
+    return this.registrationStatus.charAt(0).toUpperCase() + this.registrationStatus.slice(1);
 });
 
 // Pre-save middleware to calculate ages
-teamSchema.pre("save", function (next) {
-    if (this.isModified("players")) {
+teamSchema.pre('save', function (next) {
+    if (this.isModified('players')) {
         this.calculatePlayerAges();
     }
     next();
 });
 
 // Transform for JSON output
-teamSchema.set("toJSON", {
+teamSchema.set('toJSON', {
     virtuals: true,
     transform: function (doc, ret) {
         delete ret._id;
@@ -396,6 +391,6 @@ teamSchema.set("toJSON", {
     },
 });
 
-const Team = mongoose.model("Team", teamSchema);
+const Team = mongoose.model('Team', teamSchema);
 
 module.exports = Team;
