@@ -44,6 +44,7 @@ function setupEventListeners() {
     document.getElementById('team-filter').addEventListener('change', applyFilters);
     document.getElementById('status-filter').addEventListener('change', applyFilters);
     document.getElementById('payment-filter').addEventListener('change', applyFilters);
+    document.getElementById('payment-method-filter').addEventListener('change', applyFilters);
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
 
     // Export and shirt summary buttons
@@ -186,6 +187,7 @@ function applyFilters() {
     const teamFilter = document.getElementById('team-filter').value;
     const statusFilter = document.getElementById('status-filter').value;
     const paymentFilter = document.getElementById('payment-filter').value;
+    const paymentMethodFilter = document.getElementById('payment-method-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
 
     filteredPlayers = currentPlayers.filter((player) => {
@@ -193,6 +195,8 @@ function applyFilters() {
         const matchesTeam = !teamFilter || player.chosenTeam === teamFilter;
         const matchesStatus = !statusFilter || player.registrationStatus === statusFilter;
         const matchesPayment = !paymentFilter || player.paymentStatus === paymentFilter;
+        const matchesPaymentMethod =
+            !paymentMethodFilter || player.paymentMethod === paymentMethodFilter;
         const matchesSearch =
             !searchTerm ||
             player.playerName.toLowerCase().includes(searchTerm) ||
@@ -202,7 +206,14 @@ function applyFilters() {
             player.parentInfo?.email?.toLowerCase().includes(searchTerm) ||
             player.playerId.toLowerCase().includes(searchTerm);
 
-        return matchesShirt && matchesTeam && matchesStatus && matchesPayment && matchesSearch;
+        return (
+            matchesShirt &&
+            matchesTeam &&
+            matchesStatus &&
+            matchesPayment &&
+            matchesSearch &&
+            matchesPaymentMethod
+        );
     });
 
     currentPage = 1;
