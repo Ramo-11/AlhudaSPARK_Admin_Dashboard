@@ -1,254 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Practice Players - Admin Dashboard</title>
-    <link rel="stylesheet" href="/css/dashboard.css">
-</head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <h2>Admin Dashboard</h2>
-            </div>
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="/" class="nav-link">
-                        <span class="nav-icon">📊</span>
-                        Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/vendors" class="nav-link">
-                        <span class="nav-icon">🏪</span>
-                        Vendors
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/food-vendors" class="nav-link">
-                        <span class="nav-icon">🍔</span>
-                        Food Vendors
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/teams" class="nav-link">
-                        <span class="nav-icon">👥</span>
-                        Teams
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/sponsors" class="nav-link">
-                        <span class="nav-icon">🤝</span>
-                        Sponsors
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/players" class="nav-link active">
-                        <span class="nav-icon">🏀</span>
-                        Practice Players
-                    </a>
-                </li>
-            </ul>
-        </nav>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Practice Players - Admin Dashboard</title>
+        <link rel="stylesheet" href="/css/dashboard.css" />
+    </head>
+    <body>
+        <div class="dashboard-container">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Admin Dashboard</h2>
+                </div>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/vendors" class="nav-link">
+                            <span class="nav-icon">🏪</span>
+                            Vendors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/food-vendors" class="nav-link">
+                            <span class="nav-icon">🍔</span>
+                            Food Vendors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/teams" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            Teams
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/sponsors" class="nav-link">
+                            <span class="nav-icon">🤝</span>
+                            Sponsors
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/players" class="nav-link active">
+                            <span class="nav-icon">🏀</span>
+                            Practice Players
+                        </a>
+                    </li>
+                </ul>
+            </nav>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="content-header">
-                <h1>Practice Session Players</h1>
-                <p>Manage player registrations for practice sessions</p>
-            </div>
+            <!-- Main Content -->
+            <main class="main-content">
+                <div class="content-header">
+                    <h1>Practice Session Players</h1>
+                    <p>Manage player registrations for practice sessions</p>
+                </div>
 
-            <!-- Stats Overview -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">🏀</div>
-                    <div class="stat-info">
-                        <h3 id="total-players-count">0</h3>
-                        <p>Total Players</p>
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏀</div>
+                        <div class="stat-info">
+                            <h3 id="total-players-count">0</h3>
+                            <p>Total Players</p>
+                        </div>
+                        <div class="stat-badge players-badge">
+                            <span id="approved-players">0</span> Approved
+                        </div>
                     </div>
-                    <div class="stat-badge players-badge">
-                        <span id="approved-players">0</span> Approved
+
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-info">
+                            <h3 id="practice-revenue">$0</h3>
+                            <p>Practice Revenue</p>
+                        </div>
+                        <div class="stat-badge revenue-badge">
+                            <span id="pending-practice-payments">0</span> Pending
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">👕</div>
+                        <div class="stat-info">
+                            <h3 id="shirt-orders">0</h3>
+                            <p>Shirts to Order</p>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-info">
-                        <h3 id="practice-revenue">$0</h3>
-                        <p>Practice Revenue</p>
-                    </div>
-                    <div class="stat-badge revenue-badge">
-                        <span id="pending-practice-payments">0</span> Pending
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon">👕</div>
-                    <div class="stat-info">
-                        <h3 id="shirt-orders">0</h3>
-                        <p>Shirts to Order</p>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Filters and Actions -->
-            <div class="filters-section">
-                <div class="filters-row">
-                    <div class="filter-group">
-                        <select id="team-filter" class="form-select">
-                            <option value="">All Teams</option>
-                            <option value="HS Girls White">High School Girls White</option>
-                            <option value="HS Boys White">High School Boys White</option>
-                            <option value="HS Boys Black">High School Boys Black</option>
-                            <option value="HS Boys Gold">High School Boys Gold</option>
-                            <option value="MS Boys White">Middle School Boys White</option>
-                            <option value="MS Boys Black">Middle School Boys Black</option>
-                            <option value="MS Boys Gold">Middle School Boys Gold</option>
-                            <option value="MS Boys Red">Middle School Boys Red</option>
-                            <option value="MS Boys Blue">Middle School Boys Blue</option>
-                            <option value="MS Girls White">Middle School Girls White</option>
-                            <option value="MS Girls Black">Middle School Girls Black</option>
-                            <option value="MS Girls Gold">Middle School Girls Gold</option>
-                            <option value="4th/5th Boys White">4th/5th Boys White</option>
-                            <option value="4th/5th Boys Black">4th/5th Boys Black</option>
-                            <option value="4th/5th Girls White">4th/5th Girls White</option>
-                            <option value="4th/5th Girls Black">4th/5th Girls Black</option>
-                            <option value="4th/5th Girls Gold">4th/5th Girls Gold</option>
-                            <option value="K/1st (Mixed)">Kindergarten/1st Grade (Mixed)</option>
-                            <option value="2nd/3rd Girls">2nd/3rd Grade Girls</option>
-                            <option value="2nd/3rd Boys">2nd/3rd Grade Boys</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <select id="shirt-filter" class="form-select">
-                            <option value="">All Sizes</option>
-                            <option value="MS">Men Small</option>
-                            <option value="MM">Men Medium</option>
-                            <option value="ML">Men Large</option>
-                            <option value="MXL">Men X-Large</option>
-                            <option value="WS">Women Small</option>
-                            <option value="WM">Women Medium</option>
-                            <option value="WL">Women Large</option>
-                            <option value="WXL">Women X-Large</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <select id="status-filter" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <select id="payment-filter" class="form-select">
-                            <option value="">All Payment Status</option>
-                            <option value="pending">Payment Pending</option>
-                            <option value="completed">Payment Completed</option>
-                            <option value="failed">Payment Failed</option>
-                        </select>
-                    </div>
-                    <div class="action-group">
-                        <button id="add-player-btn" class="btn btn-primary">+ Add Player</button>
-                        <button id="export-btn" class="btn btn-secondary">Export</button>
-                        <button id="shirt-summary-btn" class="btn btn-secondary">Shirt Summary</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Players Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2>Players List</h2>
-                    <div class="search-box">
-                        <input type="text" id="search-input" placeholder="Search players..." class="form-input">
-                    </div>
-                </div>
-                
-                <table class="data-table" id="players-table">
-                    <thead>
-                        <tr>
-                            <th>Player ID</th>
-                            <th>Player Name</th>
-                            <th>Age</th>
-                            <th>Jersey Name</th>
-                            <th>School</th>
-                            <th>Shirt Size</th>
-                            <th>Chosen Team</th>
-                            <th>Parent</th>
-                            <th>Contact</th>
-                            <th>Fee</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="players-table-body">
-                        <!-- Player rows will be populated by JavaScript -->
-                    </tbody>
-                </table>
-                
-                <div class="table-footer">
-                    <div class="pagination" id="pagination">
-                        <!-- Pagination will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Add/Edit Player Modal -->
-    <div id="player-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Add Player</h2>
-                <button class="close-btn" id="close-modal">&times;</button>
-            </div>
-            
-            <form id="player-form" class="modal-body">
-                <!-- Player Information -->
-                <h3>Player Information</h3>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label class="form-label">Player Name *</label>
-                        <input type="text" name="playerName" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth *</label>
-                        <input type="date" name="dateOfBirth" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Shirt Size *</label>
-                        <select name="shirtSize" class="form-select" required>
-                            <option value="">Select Size</option>
-                            <optgroup label="Youth Sizes">
-                                <option value="YS">Youth Small</option>
-                                <option value="YM">Youth Medium</option>
-                                <option value="YL">Youth Large</option>
-                                <option value="YXL">Youth X-Large</option>
-                            </optgroup>
-                            <optgroup label="Adult Sizes">
-                                <option value="AS">Adult Small</option>
-                                <option value="AM">Adult Medium</option>
-                                <option value="AL">Adult Large</option>
-                                <option value="AXL">Adult X-Large</option>
-                            </optgroup>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Jersey Name</label>
-                        <input type="text" name="jerseyName" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="chosenTeam">Chosen Team *</label>
-                        <select id="chosenTeam" name="chosenTeam" required>
-                            <option value="">Select Team</option>
-                            <optgroup label="Teams">
+                <!-- Filters and Actions -->
+                <div class="filters-section">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <select id="team-filter" class="form-select">
+                                <option value="">All Teams</option>
                                 <option value="HS Girls White">High School Girls White</option>
                                 <option value="HS Boys White">High School Boys White</option>
                                 <option value="HS Boys Black">High School Boys Black</option>
@@ -266,150 +116,343 @@
                                 <option value="4th/5th Girls White">4th/5th Girls White</option>
                                 <option value="4th/5th Girls Black">4th/5th Girls Black</option>
                                 <option value="4th/5th Girls Gold">4th/5th Girls Gold</option>
-                                <option value="K/1st (Mixed)">Kindergarten/1st Grade (Mixed)</option>
+                                <option value="K/1st (Mixed)">
+                                    Kindergarten/1st Grade (Mixed)
+                                </option>
                                 <option value="2nd/3rd Girls">2nd/3rd Grade Girls</option>
                                 <option value="2nd/3rd Boys">2nd/3rd Grade Boys</option>
-                            </optgroup>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select id="shirt-filter" class="form-select">
+                                <option value="">All Sizes</option>
+                                <option value="MS">Men Small</option>
+                                <option value="MM">Men Medium</option>
+                                <option value="ML">Men Large</option>
+                                <option value="MXL">Men X-Large</option>
+                                <option value="WS">Women Small</option>
+                                <option value="WM">Women Medium</option>
+                                <option value="WL">Women Large</option>
+                                <option value="WXL">Women X-Large</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select id="status-filter" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <select id="payment-filter" class="form-select">
+                                <option value="">All Payment Status</option>
+                                <option value="pending">Payment Pending</option>
+                                <option value="completed">Payment Completed</option>
+                                <option value="failed">Payment Failed</option>
+                            </select>
+                        </div>
+                        <div class="action-group">
+                            <button id="add-player-btn" class="btn btn-primary">
+                                + Add Player
+                            </button>
+                            <button id="export-btn" class="btn btn-secondary">Export</button>
+                            <button id="shirt-summary-btn" class="btn btn-secondary">
+                                Shirt Summary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Players Table -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <h2>Players List</h2>
+                        <div class="search-box">
+                            <input
+                                type="text"
+                                id="search-input"
+                                placeholder="Search players..."
+                                class="form-input"
+                            />
+                        </div>
+                    </div>
+
+                    <table class="data-table" id="players-table">
+                        <thead>
+                            <tr>
+                                <th>Player ID</th>
+                                <th>Player Name</th>
+                                <th>Age</th>
+                                <th>Jersey Name</th>
+                                <th>School</th>
+                                <th>Shirt Size</th>
+                                <th>Chosen Team</th>
+                                <th>Parent</th>
+                                <th>Contact</th>
+                                <th>Fee</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="players-table-body">
+                            <!-- Player rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <div class="table-footer">
+                        <div class="pagination" id="pagination">
+                            <!-- Pagination will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Add/Edit Player Modal -->
+        <div id="player-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Add Player</h2>
+                    <button class="close-btn" id="close-modal">&times;</button>
+                </div>
+
+                <form id="player-form" class="modal-body">
+                    <!-- Player Information -->
+                    <h3>Player Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Player Name *</label>
+                            <input type="text" name="playerName" class="form-input" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth *</label>
+                            <input type="date" name="dateOfBirth" class="form-input" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Shirt Size *</label>
+                            <select name="shirtSize" class="form-select" required>
+                                <option value="">Select Size</option>
+                                <optgroup label="Youth Sizes">
+                                    <option value="YS">Youth Small</option>
+                                    <option value="YM">Youth Medium</option>
+                                    <option value="YL">Youth Large</option>
+                                    <option value="YXL">Youth X-Large</option>
+                                </optgroup>
+                                <optgroup label="Adult Sizes">
+                                    <option value="AS">Adult Small</option>
+                                    <option value="AM">Adult Medium</option>
+                                    <option value="AL">Adult Large</option>
+                                    <option value="AXL">Adult X-Large</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Jersey Name</label>
+                            <input type="text" name="jerseyName" class="form-input" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="chosenTeam">Chosen Team *</label>
+                            <select id="chosenTeam" name="chosenTeam" required>
+                                <option value="">Select Team</option>
+                                <optgroup label="Teams">
+                                    <option value="HS Girls White">High School Girls White</option>
+                                    <option value="HS Boys White">High School Boys White</option>
+                                    <option value="HS Boys Black">High School Boys Black</option>
+                                    <option value="HS Boys Gold">High School Boys Gold</option>
+                                    <option value="MS Boys White">Middle School Boys White</option>
+                                    <option value="MS Boys Black">Middle School Boys Black</option>
+                                    <option value="MS Boys Gold">Middle School Boys Gold</option>
+                                    <option value="MS Boys Red">Middle School Boys Red</option>
+                                    <option value="MS Boys Blue">Middle School Boys Blue</option>
+                                    <option value="MS Girls White">
+                                        Middle School Girls White
+                                    </option>
+                                    <option value="MS Girls Black">
+                                        Middle School Girls Black
+                                    </option>
+                                    <option value="MS Girls Gold">Middle School Girls Gold</option>
+                                    <option value="4th/5th Boys White">4th/5th Boys White</option>
+                                    <option value="4th/5th Boys Black">4th/5th Boys Black</option>
+                                    <option value="4th/5th Girls White">4th/5th Girls White</option>
+                                    <option value="4th/5th Girls Black">4th/5th Girls Black</option>
+                                    <option value="4th/5th Girls Gold">4th/5th Girls Gold</option>
+                                    <option value="K/1st (Mixed)">
+                                        Kindergarten/1st Grade (Mixed)
+                                    </option>
+                                    <option value="2nd/3rd Girls">2nd/3rd Grade Girls</option>
+                                    <option value="2nd/3rd Boys">2nd/3rd Grade Boys</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Current School *</label>
+                            <input type="text" name="currentSchool" class="form-input" required />
+                        </div>
+                    </div>
+
+                    <!-- Parent Information -->
+                    <h3 style="margin-top: 2rem">Parent/Guardian Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Parent/Guardian Name *</label>
+                            <input type="text" name="parentName" class="form-input" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" name="parentEmail" class="form-input" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Phone *</label>
+                            <input type="tel" name="parentPhone" class="form-input" required />
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <h3 style="margin-top: 2rem">Additional Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Comments / Special Requirements</label>
+                            <textarea
+                                name="comments"
+                                class="form-textarea"
+                                maxlength="500"
+                                placeholder="Any medical conditions, dietary restrictions, or special requirements?"
+                            ></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Waiver Status -->
+                    <div class="form-group" style="margin-top: 1rem">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="waiverAccepted" />
+                            Waiver Accepted
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cancel-btn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">Save Player</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-modal" class="modal">
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h2>Confirm Delete</h2>
+                    <button class="close-btn" id="close-delete-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Are you sure you want to delete this player registration? This action cannot
+                        be undone.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancel-delete">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Status Modal -->
+        <div id="payment-modal" class="modal">
+            <div class="modal-content modal-sm">
+                <div class="modal-header">
+                    <h2>Update Payment Status</h2>
+                    <button class="close-btn" id="close-payment-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Payment Status</label>
+                        <select id="new-payment-status" class="form-select">
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                            <option value="failed">Failed</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
-                    
                     <div class="form-group">
-                        <label class="form-label">Current School *</label>
-                        <input type="text" name="currentSchool" class="form-input" required>
+                        <label class="form-label">Payment Method</label>
+                        <select id="payment-method" class="form-select">
+                            <option value="">Select Method</option>
+                            <option value="check">Check</option>
+                            <option value="cash">Cash</option>
+                            <option value="zelle">Zelle</option>
+                            <option value="venmo">Venmo</option>
+                            <option value="stripe">Stripe</option>
+                        </select>
                     </div>
-                </div>
-
-                <!-- Parent Information -->
-                <h3 style="margin-top: 2rem;">Parent/Guardian Information</h3>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label class="form-label">Parent/Guardian Name *</label>
-                        <input type="text" name="parentName" class="form-input" required>
-                    </div>
-                    
                     <div class="form-group">
-                        <label class="form-label">Email *</label>
-                        <input type="email" name="parentEmail" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Phone *</label>
-                        <input type="tel" name="parentPhone" class="form-input" required>
-                    </div>
-                </div>
-
-                <!-- Additional Information -->
-                <h3 style="margin-top: 2rem;">Additional Information</h3>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label class="form-label">Comments / Special Requirements</label>
-                        <textarea name="comments" class="form-textarea" maxlength="500" placeholder="Any medical conditions, dietary restrictions, or special requirements?"></textarea>
+                        <label class="form-label">Transaction ID</label>
+                        <input
+                            type="text"
+                            id="transaction-id"
+                            class="form-input"
+                            placeholder="Optional transaction reference"
+                        />
                     </div>
                 </div>
-
-                <!-- Waiver Status -->
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="waiverAccepted">
-                        Waiver Accepted
-                    </label>
-                </div>
-                
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Player</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>Confirm Delete</h2>
-                <button class="close-btn" id="close-delete-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this player registration? This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancel-delete">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Status Modal -->
-    <div id="payment-modal" class="modal">
-        <div class="modal-content modal-sm">
-            <div class="modal-header">
-                <h2>Update Payment Status</h2>
-                <button class="close-btn" id="close-payment-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Payment Status</label>
-                    <select id="new-payment-status" class="form-select">
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="completed">Completed</option>
-                        <option value="failed">Failed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Payment Method</label>
-                    <select id="payment-method" class="form-select">
-                        <option value="">Select Method</option>
-                        <option value="check">Check</option>
-                        <option value="cash">Cash</option>
-                        <option value="zelle">Zelle</option>
-                        <option value="venmo">Venmo</option>
-                        <option value="stripe">Stripe</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Transaction ID</label>
-                    <input type="text" id="transaction-id" class="form-input" placeholder="Optional transaction reference">
+                    <button type="button" class="btn btn-secondary" id="cancel-payment">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="confirm-payment">
+                        Update Payment
+                    </button>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancel-payment">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirm-payment">Update Payment</button>
+        </div>
+
+        <!-- Shirt Summary Modal -->
+        <div id="shirt-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Shirt Size Summary</h2>
+                    <button class="close-btn" id="close-shirt-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <h3>Shirts to Order (Approved Players Only)</h3>
+                    <table class="data-table" id="shirt-summary-table" style="margin-top: 1rem">
+                        <thead>
+                            <tr>
+                                <th>Size</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shirt-summary-body">
+                            <!-- Shirt summary will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="close-shirt-summary">
+                        Close
+                    </button>
+                    <button type="button" class="btn btn-primary" id="export-shirts">
+                        Export Summary
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Shirt Summary Modal -->
-    <div id="shirt-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Shirt Size Summary</h2>
-                <button class="close-btn" id="close-shirt-modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <h3>Shirts to Order (Approved Players Only)</h3>
-                <table class="data-table" id="shirt-summary-table" style="margin-top: 1rem;">
-                    <thead>
-                        <tr>
-                            <th>Size</th>
-                            <th>Count</th>
-                        </tr>
-                    </thead>
-                    <tbody id="shirt-summary-body">
-                        <!-- Shirt summary will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="close-shirt-summary">Close</button>
-                <button type="button" class="btn btn-primary" id="export-shirts">Export Summary</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="/js/dashboard.js"></script>
-    <script src="/js/players.js"></script>
-</body>
+        <script src="/js/dashboard.js"></script>
+        <script src="/js/players.js"></script>
+    </body>
 </html>

@@ -148,6 +148,7 @@ function updatePlayersTable() {
                 <small>${player.parentInfo?.phone || ''}</small>
             </td>
             <td>$${player.registrationFee || 275}</td>
+            <td>${player.paymentMethod ? player.paymentMethod.toUpperCase() : 'N/A'}</td>
             <td>
                 <span class="status-badge status-${player.registrationStatus}">${
                 player.registrationStatus

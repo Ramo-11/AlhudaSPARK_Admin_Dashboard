@@ -16,7 +16,14 @@ const playerSchema = new mongoose.Schema(
         idPhotoUrl: {
             type: String,
             required: function () {
-                return this.parent()?.tier === 'high_school';
+                const category = this.parent()?.category;
+                return [
+                    'boys_middle',
+                    'girls_middle',
+                    'boys_high_competitive',
+                    'boys_high_recreational',
+                    'girls_high',
+                ].includes(category);
             },
             trim: true,
         },
@@ -27,18 +34,20 @@ const playerSchema = new mongoose.Schema(
         idPhotoOriginalName: {
             type: String,
             required: function () {
-                return this.parent()?.tier === 'high_school';
+                const category = this.parent()?.category;
+                return [
+                    'boys_middle',
+                    'girls_middle',
+                    'boys_high_competitive',
+                    'boys_high_recreational',
+                    'girls_high',
+                ].includes(category);
             },
             trim: true,
         },
-        // Calculated age at registration
-        ageAtRegistration: {
-            type: Number,
-            required: true,
-        },
     },
     {
-        _id: true, // Allow _id for each player
+        _id: true,
     }
 );
 
@@ -70,16 +79,20 @@ const teamSchema = new mongoose.Schema(
         },
 
         // Competition Details
-        tier: {
+        category: {
             type: String,
             required: true,
-            enum: ['elementary', 'middle', 'high_school', 'open'],
-            lowercase: true,
-        },
-        gender: {
-            type: String,
-            required: true,
-            enum: ['male', 'female'],
+            enum: [
+                'boys_elem_1_3',
+                'boys_elem_4_5',
+                'girls_elem_1_5',
+                'boys_middle',
+                'girls_middle',
+                'boys_high_competitive',
+                'boys_high_recreational',
+                'girls_high',
+                'mens_open',
+            ],
             lowercase: true,
         },
 
@@ -229,12 +242,12 @@ const teamSchema = new mongoose.Schema(
         },
     },
     {
-        timestamps: true, // Adds createdAt and updatedAt automatically
+        timestamps: true,
     }
 );
 
 // Indexes for better query performance
-teamSchema.index({ tier: 1, gender: 1, registrationStatus: 1 });
+teamSchema.index({ category: 1, registrationStatus: 1 });
 teamSchema.index({ organization: 1 });
 teamSchema.index({ city: 1 });
 teamSchema.index({ createdAt: -1 });
@@ -246,41 +259,19 @@ teamSchema.statics.generateTeamId = function () {
     return `TM-${timestamp}-${randomStr}`.toUpperCase();
 };
 
-// Static method to get registration fees by tier
+// Static method to get registration fees by category
 teamSchema.statics.getRegistrationFees = function () {
     return {
-        elementary: 350,
-        middle: 350,
-        high_school: 350,
-        open: 350,
+        boys_elem_1_3: 350,
+        boys_elem_4_5: 350,
+        girls_elem_1_5: 350,
+        boys_middle: 350,
+        girls_middle: 350,
+        boys_high_competitive: 350,
+        boys_high_recreational: 350,
+        girls_high: 350,
+        mens_open: 350,
     };
-};
-
-// Instance method to calculate player ages
-teamSchema.methods.calculatePlayerAges = function () {
-    const currentDate = new Date();
-    this.players.forEach((player) => {
-        const birthDate = new Date(player.dateOfBirth);
-        const age = Math.floor((currentDate - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
-        player.ageAtRegistration = age;
-    });
-};
-
-// Instance method to validate player ages for tier
-teamSchema.methods.validatePlayerAgesForTier = function () {
-    const ageRanges = {
-        elementary: { min: 4, max: 11 },
-        middle: { min: 10, max: 15 },
-        high_school: { min: 13, max: 20 },
-        open: { min: 10, max: 100 },
-    };
-
-    const range = ageRanges[this.tier];
-    if (!range) return false;
-
-    return this.players.every(
-        (player) => player.ageAtRegistration >= range.min && player.ageAtRegistration <= range.max
-    );
 };
 
 // Instance method to mark payment as complete
@@ -307,11 +298,10 @@ teamSchema.methods.assignToGroup = function (groupName, seedNumber = null) {
     return this.save();
 };
 
-// Static method to find teams by tier and gender
-teamSchema.statics.findByTierAndGender = function (tier, gender) {
+// Static method to find teams by category
+teamSchema.statics.findByCategory = function (category) {
     return this.find({
-        tier: tier.toLowerCase(),
-        gender: gender.toLowerCase(),
+        category: category.toLowerCase(),
         registrationStatus: 'approved',
         isActive: true,
     }).sort({ createdAt: -1 });
@@ -331,7 +321,7 @@ teamSchema.statics.findApprovedTeams = function () {
         registrationStatus: 'approved',
         paymentStatus: 'completed',
         isActive: true,
-    }).sort({ tier: 1, gender: 1, createdAt: -1 });
+    }).sort({ category: 1, createdAt: -1 });
 };
 
 // Static method to find pending registrations
@@ -341,20 +331,20 @@ teamSchema.statics.findPendingRegistrations = function () {
     }).sort({ createdAt: -1 });
 };
 
-// Virtual for tier display name
-teamSchema.virtual('tierDisplayName').get(function () {
-    const tierMap = {
-        elementary: 'Elementary School',
-        middle: 'Middle School',
-        high_school: 'High School',
-        open: 'Men’s Open/Alumni',
+// Virtual for category display name
+teamSchema.virtual('categoryDisplayName').get(function () {
+    const categoryMap = {
+        boys_elem_1_3: 'Boys Elementary (1-3rd)',
+        boys_elem_4_5: 'Boys Elementary (4-5th)',
+        girls_elem_1_5: 'Girls Elementary (1-5th)',
+        boys_middle: 'Boys Middle School (6-8th)',
+        girls_middle: 'Girls Middle School (6-8th)',
+        boys_high_competitive: 'Boys High School (9-12th) Competitive',
+        boys_high_recreational: 'Boys High School (9-12th) Recreational',
+        girls_high: 'Girls High School (9-12th)',
+        mens_open: "Men's Open/Alumni",
     };
-    return tierMap[this.tier] || this.tier;
-});
-
-// Virtual for gender display name
-teamSchema.virtual('genderDisplayName').get(function () {
-    return this.gender.charAt(0).toUpperCase() + this.gender.slice(1);
+    return categoryMap[this.category] || this.category;
 });
 
 // Virtual for player count
@@ -371,14 +361,6 @@ teamSchema.virtual('statusDisplay').get(function () {
         return 'Payment Pending';
     }
     return this.registrationStatus.charAt(0).toUpperCase() + this.registrationStatus.slice(1);
-});
-
-// Pre-save middleware to calculate ages
-teamSchema.pre('save', function (next) {
-    if (this.isModified('players')) {
-        this.calculatePlayerAges();
-    }
-    next();
 });
 
 // Transform for JSON output

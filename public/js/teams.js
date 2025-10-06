@@ -175,6 +175,7 @@ function updateTeamsTable() {
             <td>${formatGender(team.gender)}</td>
             <td>${team.players?.length || 0}</td>
             <td>$${team.registrationFee?.toLocaleString() || '0'}</td>
+            <td>${team.paymentMethod ? team.paymentMethod.toUpperCase() : 'N/A'}</td>
             <td>
                 <span class="status-badge status-${team.registrationStatus}">${
                 team.registrationStatus
