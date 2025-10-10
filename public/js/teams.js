@@ -167,7 +167,14 @@ function updateTeamsTable() {
         .map(
             (team) => `
         <tr>
-            <td>${team.teamId}</td>
+            <td>${new Date(team.createdAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+            })}</td>
             <td><strong>${team.teamName}</strong></td>
             <td>${team.organization}</td>
             <td>${team.coachName}</td>

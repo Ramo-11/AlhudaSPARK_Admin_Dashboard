@@ -7,7 +7,7 @@ let itemsPerPage = 10;
 let isEditing = false;
 let editingVendorId = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initVendorsPage();
 });
 
@@ -22,7 +22,7 @@ function setupEventListeners() {
     if (addVendorBtn) {
         addVendorBtn.addEventListener('click', openAddVendorModal);
     }
-    
+
     // Modal controls
     document.getElementById('close-modal')?.addEventListener('click', closeModal);
     document.getElementById('cancel-btn')?.addEventListener('click', closeModal);
@@ -34,31 +34,31 @@ function setupEventListeners() {
     document.getElementById('cancel-payment-btn')?.addEventListener('click', closePaymentModal);
     document.getElementById('payment-form')?.addEventListener('submit', handlePaymentStatusUpdate);
 
-    document.getElementById('payment-modal')?.addEventListener('click', function(e) {
+    document.getElementById('payment-modal')?.addEventListener('click', function (e) {
         if (e.target === this) closePaymentModal();
     });
 
     // Form submission
     document.getElementById('vendor-form')?.addEventListener('submit', handleFormSubmit);
-    
+
     // Delete confirmation
     document.getElementById('confirm-delete')?.addEventListener('click', handleDelete);
-    
+
     // Filters
     document.getElementById('type-filter')?.addEventListener('change', applyFilters);
     document.getElementById('payment-filter')?.addEventListener('change', applyFilters);
     document.getElementById('location-filter')?.addEventListener('change', applyFilters);
     document.getElementById('search-input')?.addEventListener('input', debounce(applyFilters, 300));
-    
+
     // Export button
     document.getElementById('export-btn')?.addEventListener('click', exportVendors);
-    
+
     // Modal backdrop click
-    document.getElementById('vendor-modal')?.addEventListener('click', function(e) {
+    document.getElementById('vendor-modal')?.addEventListener('click', function (e) {
         if (e.target === this) closeModal();
     });
-    
-    document.getElementById('delete-modal')?.addEventListener('click', function(e) {
+
+    document.getElementById('delete-modal')?.addEventListener('click', function (e) {
         if (e.target === this) closeDeleteModal();
     });
 }
@@ -69,7 +69,7 @@ async function loadVendors() {
         showLoading();
         const response = await fetch('/api/vendors');
         const result = await response.json();
-        
+
         if (result.success) {
             currentVendors = result.data;
             filteredVendors = [...currentVendors];
@@ -91,7 +91,7 @@ function updateVendorsTable() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedVendors = filteredVendors.slice(startIndex, endIndex);
-    
+
     if (paginatedVendors.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -102,43 +102,66 @@ function updateVendorsTable() {
         `;
         return;
     }
-    
-    tbody.innerHTML = paginatedVendors.map(vendor => `
+
+    tbody.innerHTML = paginatedVendors
+        .map(
+            (vendor) => `
         <tr>
-            <td>${vendor.vendorId}</td>
+            <td>${new Date(vendor.createdAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+            })}</td>
             <td><strong>${vendor.businessName}</strong></td>
             <td>${vendor.contactPerson}</td>
             <td>${vendor.email}</td>
             <td>${formatVendorType(vendor.vendorType)}</td>
-            <td style="font-size: 0.85rem;">
-                ${vendor.businessDescription ? 
-                    (vendor.businessDescription.length > 1000 ? 
-                        vendor.businessDescription.substring(0, 1000) + '...' : 
-                        vendor.businessDescription) : 
-                    'N/A'}
+            <td style="font-size: 0.7rem;">
+                ${
+                    vendor.businessDescription
+                        ? vendor.businessDescription.length > 1000
+                            ? vendor.businessDescription.substring(0, 1000) + '...'
+                            : vendor.businessDescription
+                        : 'N/A'
+                }
             </td>
             <td>${vendor.paymentMethod ? vendor.paymentMethod.toUpperCase() : 'N/A'}</td>
             <td>${formatSelectedBooths(vendor.booths)}</td>
             <td>$${vendor.totalBoothPrice?.toLocaleString() || '0'}</td>
-            <td><span class="status-badge status-${vendor.paymentStatus}">${vendor.paymentStatus}</span></td>
+            <td><span class="status-badge status-${vendor.paymentStatus}">${
+                vendor.paymentStatus
+            }</span></td>
             <td>
                 <div class="action-buttons">
-                    ${vendor.paymentMethod === 'zelle' && vendor.zelleReceipt ? 
-                        `<button class="btn-small btn-info" onclick="viewReceipt('${vendor.zelleReceipt}', '${vendor.businessName}')">Receipt</button>` : 
-                        ''}
-                    <button class="btn-small btn-primary" onclick="editVendor('${vendor.vendorId}')">Edit</button>
-                    <button class="btn-small btn-info" onclick="updatePaymentStatus('${vendor.vendorId}')">Payment</button>
-                    <button class="btn-small btn-danger" onclick="confirmDeleteVendor('${vendor.vendorId}')">Delete</button>
+                    ${
+                        vendor.paymentMethod === 'zelle' && vendor.zelleReceipt
+                            ? `<button class="btn-small btn-info" onclick="viewReceipt('${vendor.zelleReceipt}', '${vendor.businessName}')">Receipt</button>`
+                            : ''
+                    }
+                    <button class="btn-small btn-primary" onclick="editVendor('${
+                        vendor.vendorId
+                    }')">Edit</button>
+                    <button class="btn-small btn-info" onclick="updatePaymentStatus('${
+                        vendor.vendorId
+                    }')">Payment</button>
+                    <button class="btn-small btn-danger" onclick="confirmDeleteVendor('${
+                        vendor.vendorId
+                    }')">Delete</button>
                 </div>
             </td>
         </tr>
-    `).join('');
+    `
+        )
+        .join('');
 }
 
 function updatePaymentStatus(vendorId) {
-    const vendor = currentVendors.find(v => v.vendorId === vendorId);
+    const vendor = currentVendors.find((v) => v.vendorId === vendorId);
     if (!vendor) return;
-    
+
     editingVendorId = vendorId;
     document.getElementById('current-payment-status').textContent = vendor.paymentStatus;
     document.getElementById('payment-status-select').value = vendor.paymentStatus;
@@ -147,7 +170,7 @@ function updatePaymentStatus(vendorId) {
 
 function formatSelectedBooths(booths) {
     if (!booths || booths.length === 0) return 'None';
-    return booths.map(booth => booth.boothId).join(', ');
+    return booths.map((booth) => booth.boothId).join(', ');
 }
 
 // Apply filters
@@ -156,20 +179,21 @@ function applyFilters() {
     const paymentFilter = document.getElementById('payment-filter').value;
     const locationFilter = document.getElementById('location-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    
-    filteredVendors = currentVendors.filter(vendor => {
+
+    filteredVendors = currentVendors.filter((vendor) => {
         const matchesType = !typeFilter || vendor.vendorType === typeFilter;
         const matchesPayment = !paymentFilter || vendor.paymentStatus === paymentFilter;
         const matchesLocation = !locationFilter || vendor.boothLocation === locationFilter;
-        const matchesSearch = !searchTerm || 
+        const matchesSearch =
+            !searchTerm ||
             vendor.businessName.toLowerCase().includes(searchTerm) ||
             vendor.contactPerson.toLowerCase().includes(searchTerm) ||
             vendor.email.toLowerCase().includes(searchTerm) ||
             vendor.vendorId.toLowerCase().includes(searchTerm);
-        
+
         return matchesType && matchesPayment && matchesLocation && matchesSearch;
     });
-    
+
     currentPage = 1; // Reset to first page
     updateVendorsTable();
     updatePagination();
@@ -179,19 +203,21 @@ function applyFilters() {
 function updatePagination() {
     const totalPages = Math.ceil(filteredVendors.length / itemsPerPage);
     const paginationContainer = document.getElementById('pagination');
-    
+
     if (totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
     }
-    
+
     let paginationHTML = '';
-    
+
     // Previous button
     if (currentPage > 1) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">Previous</button>`;
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${
+            currentPage - 1
+        })">Previous</button>`;
     }
-    
+
     // Page numbers
     for (let i = 1; i <= totalPages; i++) {
         if (i === currentPage) {
@@ -202,12 +228,14 @@ function updatePagination() {
             paginationHTML += `<span class="pagination-ellipsis">...</span>`;
         }
     }
-    
+
     // Next button
     if (currentPage < totalPages) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">Next</button>`;
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${
+            currentPage + 1
+        })">Next</button>`;
     }
-    
+
     paginationContainer.innerHTML = paginationHTML;
 }
 
@@ -229,13 +257,13 @@ function openAddVendorModal() {
 
 // Edit vendor
 function editVendor(vendorId) {
-    const vendor = currentVendors.find(v => v.vendorId === vendorId);
+    const vendor = currentVendors.find((v) => v.vendorId === vendorId);
     if (!vendor) return;
-    
+
     isEditing = true;
     editingVendorId = vendorId;
     document.getElementById('modal-title').textContent = 'Edit Vendor';
-    
+
     // Populate form with matching field names
     const form = document.getElementById('vendor-form');
     form.businessName.value = vendor.businessName || '';
@@ -249,14 +277,14 @@ function editVendor(vendorId) {
     form.businessDescription.value = vendor.businessDescription || '';
     form.specialRequirements.value = vendor.specialRequirements || '';
     form.comments.value = vendor.comments || '';
-    
+
     document.getElementById('vendor-modal').style.display = 'block';
 }
 
 function updatePaymentStatus(vendorId) {
-    const vendor = currentVendors.find(v => v.vendorId === vendorId);
+    const vendor = currentVendors.find((v) => v.vendorId === vendorId);
     if (!vendor) return;
-    
+
     editingVendorId = vendorId;
     document.getElementById('current-payment-status').textContent = vendor.paymentStatus;
     document.getElementById('payment-status-select').value = vendor.paymentStatus;
@@ -265,26 +293,26 @@ function updatePaymentStatus(vendorId) {
 
 async function handlePaymentStatusUpdate(e) {
     e.preventDefault();
-    
+
     const newStatus = document.getElementById('payment-status-select').value;
     const transactionId = document.getElementById('transaction-id').value;
-    
+
     try {
         showLoading();
-        
+
         const response = await fetch(`/api/vendors/${editingVendorId}/payment`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 paymentStatus: newStatus,
-                transactionId: transactionId || null
-            })
+                transactionId: transactionId || null,
+            }),
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Payment status updated successfully', 'success');
             closePaymentModal();
@@ -321,8 +349,8 @@ function viewReceipt(receiptUrl, businessName) {
         </div>
     `;
     document.body.appendChild(modal);
-    
-    modal.addEventListener('click', function(e) {
+
+    modal.addEventListener('click', function (e) {
         if (e.target === this) this.remove();
     });
 }
@@ -330,28 +358,31 @@ function viewReceipt(receiptUrl, businessName) {
 // Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(e.target);
     const vendorData = Object.fromEntries(formData.entries());
-    
+
     try {
         showLoading();
-        
+
         const url = isEditing ? `/api/vendors/${editingVendorId}` : '/api/vendors';
         const method = isEditing ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method,
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(vendorData)
+            body: JSON.stringify(vendorData),
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
-            showToast(isEditing ? 'Vendor updated successfully' : 'Vendor created successfully', 'success');
+            showToast(
+                isEditing ? 'Vendor updated successfully' : 'Vendor created successfully',
+                'success'
+            );
             closeModal();
             loadVendors();
         } else {
@@ -375,13 +406,13 @@ function confirmDeleteVendor(vendorId) {
 async function handleDelete() {
     try {
         showLoading();
-        
+
         const response = await fetch(`/api/vendors/${editingVendorId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Vendor deleted successfully', 'success');
             closeDeleteModal();
@@ -419,13 +450,24 @@ function exportVendors() {
 // Generate CSV content
 function generateVendorsCSV(vendors) {
     const headers = [
-        'Vendor ID', 'Business Name', 'Contact Person', 'Email', 'Phone', 
-        'Vendor Type', 'Selected Booths', 'Total Price', 'Payment Method', 
-        'Payment Status', 'Address', 'Website', 'Business Description',
-        'Special Requirements', 'Transaction ID'
+        'Vendor ID',
+        'Business Name',
+        'Contact Person',
+        'Email',
+        'Phone',
+        'Vendor Type',
+        'Selected Booths',
+        'Total Price',
+        'Payment Method',
+        'Payment Status',
+        'Address',
+        'Website',
+        'Business Description',
+        'Special Requirements',
+        'Transaction ID',
     ];
-    
-    const rows = vendors.map(vendor => [
+
+    const rows = vendors.map((vendor) => [
         vendor.vendorId,
         vendor.businessName,
         vendor.contactPerson,
@@ -440,35 +482,35 @@ function generateVendorsCSV(vendors) {
         vendor.website,
         vendor.businessDescription,
         vendor.specialRequirements,
-        vendor.transactionId || ''
+        vendor.transactionId || '',
     ]);
-    
+
     return [headers, ...rows]
-        .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+        .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(','))
         .join('\n');
 }
 
 // Utility functions
 function formatVendorType(type) {
     const typeMap = {
-        'food': 'Food & Beverages',
-        'clothing': 'Clothing & Apparel',
-        'accessories': 'Accessories',
-        'books': 'Books & Education',
-        'toys': 'Toys & Games',
-        'sports': 'Sports & Fitness',
-        'services': 'Services',
-        'other': 'Other'
+        food: 'Food & Beverages',
+        clothing: 'Clothing & Apparel',
+        accessories: 'Accessories',
+        books: 'Books & Education',
+        toys: 'Toys & Games',
+        sports: 'Sports & Fitness',
+        services: 'Services',
+        other: 'Other',
     };
     return typeMap[type] || type;
 }
 
 function formatBoothLocation(location) {
     const locationMap = {
-        'back': 'Back Area',
-        'central': 'Central Aisle',
-        'side_corner': 'Side Corner',
-        'front_corner': 'Front Corner'
+        back: 'Back Area',
+        central: 'Central Aisle',
+        side_corner: 'Side Corner',
+        front_corner: 'Front Corner',
     };
     return locationMap[location] || location;
 }
@@ -500,7 +542,8 @@ function debounce(func, wait) {
 function showLoading() {
     // Show loading state
     const table = document.getElementById('vendors-table-body');
-    table.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+    table.innerHTML =
+        '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
 }
 
 function hideLoading() {

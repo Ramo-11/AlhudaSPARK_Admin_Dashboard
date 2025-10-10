@@ -136,7 +136,14 @@ function updatePlayersTable() {
         .map(
             (player) => `
         <tr>
-            <td>${player.playerId}</td>
+            <td>${new Date(player.createdAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+            })}</td>
             <td><strong>${player.playerName}</strong></td>
             <td>${player.ageAtRegistration || calculateAge(player.dateOfBirth)}</td>
             <td><small>${player.jerseyName || player.playerName}</small></td>

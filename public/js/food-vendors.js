@@ -7,7 +7,7 @@ let itemsPerPage = 10;
 let isEditing = false;
 let editingVendorId = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initFoodVendorsPage();
 });
 
@@ -29,29 +29,29 @@ function setupEventListeners() {
     document.getElementById('cancel-payment-btn').addEventListener('click', closePaymentModal);
     document.getElementById('payment-form').addEventListener('submit', handlePaymentStatusUpdate);
 
-    document.getElementById('payment-modal').addEventListener('click', function(e) {
+    document.getElementById('payment-modal').addEventListener('click', function (e) {
         if (e.target === this) closePaymentModal();
     });
 
     // Form submission
     document.getElementById('food-vendor-form').addEventListener('submit', handleFormSubmit);
-    
+
     // Delete confirmation
     document.getElementById('confirm-delete').addEventListener('click', handleDelete);
-    
+
     // Filters
     document.getElementById('payment-filter').addEventListener('change', applyFilters);
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
-    
+
     // Export button
     document.getElementById('export-btn').addEventListener('click', exportFoodVendors);
-    
+
     // Modal backdrop click
-    document.getElementById('food-vendor-modal').addEventListener('click', function(e) {
+    document.getElementById('food-vendor-modal').addEventListener('click', function (e) {
         if (e.target === this) closeModal();
     });
-    
-    document.getElementById('delete-modal').addEventListener('click', function(e) {
+
+    document.getElementById('delete-modal').addEventListener('click', function (e) {
         if (e.target === this) closeDeleteModal();
     });
 }
@@ -62,7 +62,7 @@ async function loadFoodVendors() {
         showLoading();
         const response = await fetch('/api/food-vendors');
         const result = await response.json();
-        
+
         if (result.success) {
             currentFoodVendors = result.data;
             filteredFoodVendors = [...currentFoodVendors];
@@ -84,7 +84,7 @@ function updateFoodVendorsTable() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedVendors = filteredFoodVendors.slice(startIndex, endIndex);
-    
+
     if (paginatedVendors.length === 0) {
         tbody.innerHTML = `
             <tr>
@@ -95,42 +95,65 @@ function updateFoodVendorsTable() {
         `;
         return;
     }
-    
-    tbody.innerHTML = paginatedVendors.map(vendor => `
+
+    tbody.innerHTML = paginatedVendors
+        .map(
+            (vendor) => `
         <tr>
-            <td>${vendor.vendorId}</td>
+            <td>${new Date(vendor.createdAt).toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+            })}</td>
             <td><strong>${vendor.businessName}</strong></td>
             <td>${vendor.contactPerson}</td>
             <td>${vendor.email}</td>
             <td style="font-size: 0.85rem;">
-                ${vendor.menuDescription ? 
-                    (vendor.menuDescription.length > 1000 ? 
-                        vendor.menuDescription.substring(0, 1000) + '...' : 
-                        vendor.menuDescription) : 
-                    'N/A'}
+                ${
+                    vendor.menuDescription
+                        ? vendor.menuDescription.length > 1000
+                            ? vendor.menuDescription.substring(0, 1000) + '...'
+                            : vendor.menuDescription
+                        : 'N/A'
+                }
             </td>
             <td>${vendor.paymentMethod ? vendor.paymentMethod.toUpperCase() : 'N/A'}</td>
             <td>$${vendor.vendorFee?.toLocaleString() || '3,000'}</td>
-            <td><span class="status-badge status-${vendor.paymentStatus}">${vendor.paymentStatus}</span></td>
+            <td><span class="status-badge status-${vendor.paymentStatus}">${
+                vendor.paymentStatus
+            }</span></td>
             <td>
                 <div class="action-buttons">
-                    ${vendor.paymentMethod === 'zelle' && vendor.zelleReceipt ? 
-                        `<button class="btn-small btn-info" onclick="viewReceipt('${vendor.zelleReceipt}', '${vendor.businessName}')">Receipt</button>` : 
-                        ''}
-                    <button class="btn-small btn-primary" onclick="editFoodVendor('${vendor.vendorId}')">Edit</button>
-                    <button class="btn-small btn-info" onclick="updatePaymentStatus('${vendor.vendorId}')">Payment</button>
-                    <button class="btn-small btn-danger" onclick="confirmDeleteFoodVendor('${vendor.vendorId}')">Delete</button>
+                    ${
+                        vendor.paymentMethod === 'zelle' && vendor.zelleReceipt
+                            ? `<button class="btn-small btn-info" onclick="viewReceipt('${vendor.zelleReceipt}', '${vendor.businessName}')">Receipt</button>`
+                            : ''
+                    }
+                    <button class="btn-small btn-primary" onclick="editFoodVendor('${
+                        vendor.vendorId
+                    }')">Edit</button>
+                    <button class="btn-small btn-info" onclick="updatePaymentStatus('${
+                        vendor.vendorId
+                    }')">Payment</button>
+                    <button class="btn-small btn-danger" onclick="confirmDeleteFoodVendor('${
+                        vendor.vendorId
+                    }')">Delete</button>
                 </div>
             </td>
         </tr>
-    `).join('');
+    `
+        )
+        .join('');
 }
 
 // Update payment status
 function updatePaymentStatus(vendorId) {
-    const vendor = currentFoodVendors.find(v => v.vendorId === vendorId);
+    const vendor = currentFoodVendors.find((v) => v.vendorId === vendorId);
     if (!vendor) return;
-    
+
     editingVendorId = vendorId;
     document.getElementById('current-payment-status').textContent = vendor.paymentStatus;
     document.getElementById('payment-status-select').value = vendor.paymentStatus;
@@ -141,19 +164,20 @@ function updatePaymentStatus(vendorId) {
 function applyFilters() {
     const paymentFilter = document.getElementById('payment-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    
-    filteredFoodVendors = currentFoodVendors.filter(vendor => {
+
+    filteredFoodVendors = currentFoodVendors.filter((vendor) => {
         const matchesPayment = !paymentFilter || vendor.paymentStatus === paymentFilter;
-        const matchesSearch = !searchTerm || 
+        const matchesSearch =
+            !searchTerm ||
             vendor.businessName.toLowerCase().includes(searchTerm) ||
             vendor.contactPerson.toLowerCase().includes(searchTerm) ||
             vendor.email.toLowerCase().includes(searchTerm) ||
             vendor.vendorId.toLowerCase().includes(searchTerm) ||
             (vendor.menuDescription && vendor.menuDescription.toLowerCase().includes(searchTerm));
-        
+
         return matchesPayment && matchesSearch;
     });
-    
+
     currentPage = 1; // Reset to first page
     updateFoodVendorsTable();
     updatePagination();
@@ -163,19 +187,21 @@ function applyFilters() {
 function updatePagination() {
     const totalPages = Math.ceil(filteredFoodVendors.length / itemsPerPage);
     const paginationContainer = document.getElementById('pagination');
-    
+
     if (totalPages <= 1) {
         paginationContainer.innerHTML = '';
         return;
     }
-    
+
     let paginationHTML = '';
-    
+
     // Previous button
     if (currentPage > 1) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">Previous</button>`;
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${
+            currentPage - 1
+        })">Previous</button>`;
     }
-    
+
     // Page numbers
     for (let i = 1; i <= totalPages; i++) {
         if (i === currentPage) {
@@ -186,12 +212,14 @@ function updatePagination() {
             paginationHTML += `<span class="pagination-ellipsis">...</span>`;
         }
     }
-    
+
     // Next button
     if (currentPage < totalPages) {
-        paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">Next</button>`;
+        paginationHTML += `<button class="pagination-btn" onclick="changePage(${
+            currentPage + 1
+        })">Next</button>`;
     }
-    
+
     paginationContainer.innerHTML = paginationHTML;
 }
 
@@ -204,13 +232,13 @@ function changePage(page) {
 
 // Edit food vendor
 function editFoodVendor(vendorId) {
-    const vendor = currentFoodVendors.find(v => v.vendorId === vendorId);
+    const vendor = currentFoodVendors.find((v) => v.vendorId === vendorId);
     if (!vendor) return;
-    
+
     isEditing = true;
     editingVendorId = vendorId;
     document.getElementById('modal-title').textContent = 'Edit Food Vendor';
-    
+
     // Populate form
     const form = document.getElementById('food-vendor-form');
     form.businessName.value = vendor.businessName || '';
@@ -222,33 +250,33 @@ function editFoodVendor(vendorId) {
     form.menuDescription.value = vendor.menuDescription || '';
     form.specialRequirements.value = vendor.specialRequirements || '';
     form.comments.value = vendor.comments || '';
-    
+
     document.getElementById('food-vendor-modal').style.display = 'block';
 }
 
 // Handle payment status update
 async function handlePaymentStatusUpdate(e) {
     e.preventDefault();
-    
+
     const newStatus = document.getElementById('payment-status-select').value;
     const transactionId = document.getElementById('transaction-id').value;
-    
+
     try {
         showLoading();
-        
+
         const response = await fetch(`/api/food-vendors/${editingVendorId}/payment`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 paymentStatus: newStatus,
-                transactionId: transactionId || null
-            })
+                transactionId: transactionId || null,
+            }),
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Payment status updated successfully', 'success');
             closePaymentModal();
@@ -287,8 +315,8 @@ function viewReceipt(receiptUrl, businessName) {
         </div>
     `;
     document.body.appendChild(modal);
-    
-    modal.addEventListener('click', function(e) {
+
+    modal.addEventListener('click', function (e) {
         if (e.target === this) this.remove();
     });
 }
@@ -296,27 +324,27 @@ function viewReceipt(receiptUrl, businessName) {
 // Handle form submission
 async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(e.target);
     const vendorData = Object.fromEntries(formData.entries());
-    
+
     // Fixed vendor fee
     vendorData.vendorFee = 3000;
-    
+
     try {
         showLoading();
-        
+
         // Only update, never create
         const response = await fetch(`/api/food-vendors/${editingVendorId}`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(vendorData)
+            body: JSON.stringify(vendorData),
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Food vendor updated successfully', 'success');
             closeModal();
@@ -342,13 +370,13 @@ function confirmDeleteFoodVendor(vendorId) {
 async function handleDelete() {
     try {
         showLoading();
-        
+
         const response = await fetch(`/api/food-vendors/${editingVendorId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             showToast('Food vendor deleted successfully', 'success');
             closeDeleteModal();
@@ -386,13 +414,22 @@ function exportFoodVendors() {
 // Generate CSV content
 function generateFoodVendorsCSV(vendors) {
     const headers = [
-        'Vendor ID', 'Business Name', 'Contact Person', 'Email', 'Phone', 
-        'Menu Description', 'Vendor Fee', 
-        'Payment Status', 'Address', 'Website', 
-        'Special Requirements', 'Transaction ID', 'Payment Date'
+        'Vendor ID',
+        'Business Name',
+        'Contact Person',
+        'Email',
+        'Phone',
+        'Menu Description',
+        'Vendor Fee',
+        'Payment Status',
+        'Address',
+        'Website',
+        'Special Requirements',
+        'Transaction ID',
+        'Payment Date',
     ];
-    
-    const rows = vendors.map(vendor => [
+
+    const rows = vendors.map((vendor) => [
         vendor.vendorId,
         vendor.businessName,
         vendor.contactPerson,
@@ -405,11 +442,11 @@ function generateFoodVendorsCSV(vendors) {
         vendor.website || '',
         vendor.specialRequirements || '',
         vendor.transactionId || '',
-        vendor.paymentDate || ''
+        vendor.paymentDate || '',
     ]);
-    
+
     return [headers, ...rows]
-        .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+        .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(','))
         .join('\n');
 }
 
@@ -440,7 +477,8 @@ function debounce(func, wait) {
 
 function showLoading() {
     const table = document.getElementById('food-vendors-table-body');
-    table.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+    table.innerHTML =
+        '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
 }
 
 function hideLoading() {
