@@ -42,8 +42,7 @@ function setupEventListeners() {
     document.getElementById('confirm-payment').addEventListener('click', handlePaymentUpdate);
 
     // Filters
-    document.getElementById('tier-filter').addEventListener('change', applyFilters);
-    document.getElementById('gender-filter').addEventListener('change', applyFilters);
+    document.getElementById('category-filter').addEventListener('change', applyFilters);
     document.getElementById('status-filter').addEventListener('change', applyFilters);
     document.getElementById('payment-filter').addEventListener('change', applyFilters);
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
@@ -178,8 +177,7 @@ function updateTeamsTable() {
             <td><strong>${team.teamName}</strong></td>
             <td>${team.organization}</td>
             <td>${team.coachName}</td>
-            <td>${formatTier(team.tier)}</td>
-            <td>${formatGender(team.gender)}</td>
+            <td>${formatCategory(team.category)}</td>
             <td>${team.players?.length || 0}</td>
             <td>$${team.registrationFee?.toLocaleString() || '0'}</td>
             <td>${team.paymentMethod ? team.paymentMethod.toUpperCase() : 'N/A'}</td>
@@ -225,15 +223,13 @@ function updateTeamsTable() {
 
 // Apply filters
 function applyFilters() {
-    const tierFilter = document.getElementById('tier-filter').value;
-    const genderFilter = document.getElementById('gender-filter').value;
+    const categoryFilter = document.getElementById('category-filter').value;
     const statusFilter = document.getElementById('status-filter').value;
     const paymentFilter = document.getElementById('payment-filter').value;
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
 
     filteredTeams = currentTeams.filter((team) => {
-        const matchesTier = !tierFilter || team.tier === tierFilter;
-        const matchesGender = !genderFilter || team.gender === genderFilter;
+        const matchesCategory = !categoryFilter || team.category === categoryFilter;
         const matchesStatus = !statusFilter || team.registrationStatus === statusFilter;
         const matchesPayment = !paymentFilter || team.paymentStatus === paymentFilter;
         const matchesSearch =
@@ -244,7 +240,7 @@ function applyFilters() {
             team.coachEmail.toLowerCase().includes(searchTerm) ||
             team.teamId.toLowerCase().includes(searchTerm);
 
-        return matchesTier && matchesGender && matchesStatus && matchesPayment && matchesSearch;
+        return matchesCategory && matchesStatus && matchesPayment && matchesSearch;
     });
 
     currentPage = 1;
@@ -683,8 +679,7 @@ function generateTeamsCSV(teams) {
         team.teamName,
         team.organization,
         team.city,
-        formatTier(team.tier),
-        formatGender(team.gender),
+        formatCategory(team.category),
         team.coachName,
         team.coachEmail,
         team.coachPhone,
@@ -716,14 +711,19 @@ function calculateAge(birthDate) {
     return age;
 }
 
-function formatTier(tier) {
-    const tierMap = {
-        elementary: 'Elementary School',
-        middle: 'Middle School',
-        high_school: 'High School',
-        open: "Men's Open and Alumni",
+function formatCategory(category) {
+    const map = {
+        boys_elem_1_3: 'Boys Elem (1-3)',
+        boys_elem_4_5: 'Boys Elem (4-5)',
+        girls_elem_1_5: 'Girls Elem (1-5)',
+        boys_middle: 'Boys Middle',
+        girls_middle: 'Girls Middle',
+        boys_high_competitive: 'Boys HS Comp',
+        boys_high_recreational: 'Boys HS Rec',
+        girls_high: 'Girls HS',
+        mens_open: "Men's Open",
     };
-    return tierMap[tier] || tier;
+    return map[category] || category;
 }
 
 function formatGender(gender) {
@@ -883,9 +883,14 @@ function viewReceipt(receiptUrl, teamName) {
 
 // Update ID photo requirements based on tier
 function updateIdPhotoRequirement(playerForm = null) {
-    const tierSelect = document.querySelector('select[name="tier"]');
-    const currentTier = tierSelect.value;
-    const isHighSchool = currentTier === 'high_school';
+    const highIdCategories = [
+        'boys_middle',
+        'girls_middle',
+        'boys_high_competitive',
+        'boys_high_recreational',
+        'girls_high',
+    ];
+    const isIdRequired = highIdCategories.includes(currentCategory);
 
     const forms = playerForm ? [playerForm] : document.querySelectorAll('.player-form');
 
@@ -894,8 +899,8 @@ function updateIdPhotoRequirement(playerForm = null) {
         const reqMark = f.querySelector('.id-photo-required');
         const input = f.querySelector('.id-photo-input');
 
-        if (reqMark) reqMark.style.display = isHighSchool && !hasExisting ? 'inline' : 'none';
-        if (input) input.required = isHighSchool && !hasExisting;
+        if (reqMark) reqMark.style.display = isIdRequired && !hasExisting ? 'inline' : 'none';
+        if (input) input.required = isIdRequired && !hasExisting;
     });
 }
 
