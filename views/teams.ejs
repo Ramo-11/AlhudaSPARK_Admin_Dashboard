@@ -174,18 +174,25 @@
                             <input type="text" name="city" class="form-input" required />
                         </div>
 
-                        <select id="category-filter" class="form-select">
-                            <option value="">All Categories</option>
-                            <option value="boys_elem_1_3">Boys Elementary (1-3rd)</option>
-                            <option value="boys_elem_4_5">Boys Elementary (4-5th)</option>
-                            <option value="girls_elem_1_5">Girls Elementary (1-5th)</option>
-                            <option value="boys_middle">Boys Middle School (6-8th)</option>
-                            <option value="girls_middle">Girls Middle School (6-8th)</option>
-                            <option value="boys_high_competitive">Boys High Competitive</option>
-                            <option value="boys_high_recreational">Boys High Recreational</option>
-                            <option value="girls_high">Girls High School</option>
-                            <option value="mens_open">Men’s Open/Alumni</option>
-                        </select>
+                        <div class="form-group">
+                            <label class="form-label">Category *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="">Select Category</option>
+                                <option value="boys_elem_1_3">Boys Elementary (1–3rd)</option>
+                                <option value="boys_elem_4_5">Boys Elementary (4–5th)</option>
+                                <option value="girls_elem_1_5">Girls Elementary (1–5th)</option>
+                                <option value="boys_middle">Boys Middle School (6–8th)</option>
+                                <option value="girls_middle">Girls Middle School (6–8th)</option>
+                                <option value="boys_high_competitive">
+                                    Boys High School (9–12th) Competitive
+                                </option>
+                                <option value="boys_high_recreational">
+                                    Boys High School (9–12th) Recreational
+                                </option>
+                                <option value="girls_high">Girls High School (9–12th)</option>
+                                <option value="mens_open">Men’s Open / Alumni</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Coach Information -->

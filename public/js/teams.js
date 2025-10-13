@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', function () {
 function initTeamsPage() {
     loadTeams();
     setupEventListeners();
-    setupRegistrationFees();
 }
 
 // Setup event listeners
@@ -53,8 +52,8 @@ function setupEventListeners() {
     // Player management
     document.getElementById('add-player-btn').addEventListener('click', addPlayerForm);
 
-    // Tier change - update registration fee and photo requirements
-    document.querySelector('select[name="tier"]').addEventListener('change', function () {
+    // Category change - update registration fee and photo requirements
+    document.querySelector('select[name="category"]').addEventListener('change', function () {
         updateRegistrationFee();
         updateIdPhotoRequirement();
     });
@@ -84,41 +83,21 @@ function setupEventListeners() {
     });
 }
 
-// Setup registration fees display
-function setupRegistrationFees() {
-    const registrationFees = {
-        elementary: 350,
-        middle: 350,
-        high_school: 350,
-    };
-
-    const tierSelect = document.querySelector('select[name="tier"]');
-    const options = tierSelect.querySelectorAll('option');
-
-    options.forEach((option) => {
-        const value = option.value;
-        if (value && registrationFees[value]) {
-            option.textContent = option.textContent.replace(
-                /\$[\d,]+/,
-                `$${registrationFees[value]}`
-            );
-        }
-    });
-}
-
-// Update registration fee when tier changes
 function updateRegistrationFee() {
-    const tierSelect = document.querySelector('select[name="tier"]');
-    const selectedTier = tierSelect.value;
-
+    const category = currentCategory;
     const registrationFees = {
-        elementary: 350,
-        middle: 350,
-        high_school: 350,
-        open: 350,
+        boys_elem_1_3: 350,
+        boys_elem_4_5: 350,
+        girls_elem_1_5: 350,
+        boys_middle: 350,
+        girls_middle: 350,
+        boys_high_competitive: 350,
+        boys_high_recreational: 350,
+        girls_high: 350,
+        mens_open: 350,
     };
 
-    console.log('Selected tier:', selectedTier, 'Fee:', registrationFees[selectedTier] || 0);
+    console.log('Selected category:', category, 'Fee:', registrationFees[category] || 0);
 }
 
 // Load teams from API
@@ -341,7 +320,7 @@ function addPlayerForm() {
         });
     }
 
-    // Update ID photo requirement based on current tier
+    // Update ID photo requirement based on current category
     updateIdPhotoRequirement(playerForm);
 
     document.getElementById('players-container').appendChild(playerForm);
@@ -389,9 +368,7 @@ function editTeam(teamId) {
     const form = document.getElementById('team-form');
     form.teamName.value = team.teamName || '';
     form.organization.value = team.organization || '';
-    form.city.value = team.city || '';
-    form.tier.value = team.tier || '';
-    form.gender.value = team.gender || '';
+    form.category.value = team.category || '';
     form.coachName.value = team.coachName || '';
     form.coachEmail.value = team.coachEmail || '';
     form.coachPhone.value = team.coachPhone || '';
@@ -491,8 +468,16 @@ async function handleFormSubmit(e) {
         formData.delete(`players[${index}][ageAtRegistration]`);
     });
 
-    // Validate ID photos for high school tier
-    if (formData.get('tier') === 'high_school') {
+    const highIdCategories = [
+        'boys_middle',
+        'girls_middle',
+        'boys_high_competitive',
+        'boys_high_recreational',
+        'girls_high',
+    ];
+
+    const selectedCategory = formData.get('category');
+    if (highIdCategories.includes(selectedCategory)) {
         const missingIds = players.filter((player, index) => {
             const hasNewFile = formData.get(`players[${index}][idPhoto]`);
             const existingPlayer = isEditing
@@ -503,7 +488,7 @@ async function handleFormSubmit(e) {
         });
 
         if (missingIds.length > 0) {
-            showToast('ID photos are required for all high school players', 'error');
+            showToast('ID photos are required for all players in this category', 'error');
             return;
         }
     }
@@ -660,8 +645,7 @@ function generateTeamsCSV(teams) {
         'Team Name',
         'Organization',
         'City',
-        'Tier',
-        'Gender',
+        'Category',
         'Coach Name',
         'Coach Email',
         'Coach Phone',
@@ -881,7 +865,7 @@ function viewReceipt(receiptUrl, teamName) {
     });
 }
 
-// Update ID photo requirements based on tier
+// Update ID photo requirements based on category
 function updateIdPhotoRequirement(playerForm = null) {
     const highIdCategories = [
         'boys_middle',
@@ -890,7 +874,9 @@ function updateIdPhotoRequirement(playerForm = null) {
         'boys_high_recreational',
         'girls_high',
     ];
-    const isIdRequired = highIdCategories.includes(currentCategory);
+
+    const selectedCategory = document.querySelector('select[name="category"]')?.value;
+    const isIdRequired = highIdCategories.includes(selectedCategory);
 
     const forms = playerForm ? [playerForm] : document.querySelectorAll('.player-form');
 
