@@ -655,26 +655,53 @@ function generateTeamsCSV(teams) {
         'Player Count',
         'Emergency Contact Name',
         'Emergency Contact Phone',
+        'Emergency Contact Relationship',
         'Special Requirements',
     ];
 
-    const rows = teams.map((team) => [
-        team.teamId,
-        team.teamName,
-        team.organization,
-        team.city,
-        formatCategory(team.category),
-        team.coachName,
-        team.coachEmail,
-        team.coachPhone,
-        team.registrationFee,
-        team.registrationStatus,
-        team.paymentStatus,
-        team.players?.length || 0,
-        team.emergencyContact?.name || '',
-        team.emergencyContact?.phone || '',
-        team.specialRequirements,
-    ]);
+    // Add player headers (up to 10 players)
+    const maxPlayers = 10;
+    for (let i = 1; i <= maxPlayers; i++) {
+        headers.push(`Player ${i} Name`, `Player ${i} DOB`, `Player ${i} Has ID Photo`);
+    }
+
+    const rows = teams.map((team) => {
+        const baseData = [
+            team.teamId,
+            team.teamName,
+            team.organization,
+            team.city,
+            formatCategory(team.category),
+            team.coachName,
+            team.coachEmail,
+            team.coachPhone,
+            team.registrationFee,
+            team.registrationStatus,
+            team.paymentStatus,
+            team.players?.length || 0,
+            team.emergencyContact?.name || '',
+            team.emergencyContact?.phone || '',
+            team.emergencyContact?.relationship || '',
+            team.specialRequirements || '',
+        ];
+
+        // Add player data (up to 10 players)
+        const playerData = [];
+        for (let i = 0; i < maxPlayers; i++) {
+            if (team.players && team.players[i]) {
+                const player = team.players[i];
+                playerData.push(
+                    player.playerName || '',
+                    player.dateOfBirth ? new Date(player.dateOfBirth).toLocaleDateString() : '',
+                    player.idPhotoUrl ? 'Yes' : 'No'
+                );
+            } else {
+                playerData.push('', '', ''); // Empty cells for missing players
+            }
+        }
+
+        return [...baseData, ...playerData];
+    });
 
     return [headers, ...rows]
         .map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(','))
