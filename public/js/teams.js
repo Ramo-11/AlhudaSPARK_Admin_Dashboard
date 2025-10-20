@@ -368,6 +368,7 @@ function editTeam(teamId) {
     const form = document.getElementById('team-form');
     form.teamName.value = team.teamName || '';
     form.organization.value = team.organization || '';
+    form.city.value = team.city || '';
     form.category.value = team.category || '';
     form.coachName.value = team.coachName || '';
     form.coachEmail.value = team.coachEmail || '';
@@ -487,10 +488,10 @@ async function handleFormSubmit(e) {
             return !hasNewFile && !hasExistingPhoto;
         });
 
-        if (missingIds.length > 0) {
-            showToast('ID photos are required for all players in this category', 'error');
-            return;
-        }
+        // if (missingIds.length > 0) {
+        //     showToast('ID photos are required for all players in this category', 'error');
+        //     return;
+        // }
     }
 
     // Validate player count
