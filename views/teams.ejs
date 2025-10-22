@@ -287,6 +287,46 @@
                         </div>
                     </div>
 
+                    <!-- Payment Information -->
+                    <h3 style="margin-top: 2rem">Payment Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Payment Status</label>
+                            <select name="paymentStatus" id="edit-payment-status" class="form-select">
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="failed">Failed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Payment Method</label>
+                            <select name="paymentMethod" id="edit-payment-method" class="form-select">
+                                <option value="">Select Method</option>
+                                <option value="check">Check</option>
+                                <option value="cash">Cash</option>
+                                <option value="zelle">Zelle</option>
+                                <option value="venmo">Venmo</option>
+                                <option value="stripe">Stripe</option>
+                                <option value="waived">Waived</option>
+                                <option value="wire_transfer">Wire Transfer</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Transaction ID</label>
+                            <input
+                                type="text"
+                                name="transactionId"
+                                id="edit-transaction-id"
+                                class="form-input"
+                                placeholder="Optional transaction reference"
+                            />
+                        </div>
+                    </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="cancel-btn">
                             Cancel

@@ -378,6 +378,9 @@ function editTeam(teamId) {
     form.emergencyContactRelationship.value = team.emergencyContact?.relationship || '';
     form.specialRequirements.value = team.specialRequirements || '';
     form.comments.value = team.comments || '';
+    form.paymentStatus.value = team.paymentStatus || 'pending';
+    form.paymentMethod.value = team.paymentMethod || '';
+    form.transactionId.value = team.transactionId || '';
 
     // Clear and populate players
     document.getElementById('players-container').innerHTML = '';

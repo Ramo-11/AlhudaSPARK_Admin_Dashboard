@@ -147,6 +147,9 @@ exports.update = async (req, res) => {
             specialRequirements: req.body.specialRequirements,
             comments: req.body.comments,
             players: players,
+            paymentStatus: req.body.paymentStatus,
+            paymentMethod: req.body.paymentMethod,
+            transactionId: req.body.transactionId,
         };
 
         const data = await Team.findOneAndUpdate({ teamId: req.params.id }, updateData, {
