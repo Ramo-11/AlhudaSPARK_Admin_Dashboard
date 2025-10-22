@@ -151,7 +151,7 @@ const teamSchema = new mongoose.Schema(
         },
         paymentMethod: {
             type: String,
-            enum: ['check', 'cash', 'zelle', 'venmo', 'stripe'],
+            enum: ['check', 'cash', 'zelle', 'venmo', 'stripe', 'waived', 'wire_transfer'],
             default: null,
         },
         zelleReceipt: {
