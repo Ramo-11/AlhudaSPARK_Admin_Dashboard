@@ -147,6 +147,7 @@ exports.update = async (req, res) => {
             specialRequirements: req.body.specialRequirements,
             comments: req.body.comments,
             players: players,
+            registrationFee: req.body.registrationFee,
             paymentStatus: req.body.paymentStatus,
             paymentMethod: req.body.paymentMethod,
             transactionId: req.body.transactionId,
