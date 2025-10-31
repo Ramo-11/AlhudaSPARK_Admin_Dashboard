@@ -1,6 +1,6 @@
 // Dashboard JavaScript - dashboard.js
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize dashboard
     initDashboard();
 });
@@ -16,11 +16,11 @@ function initDashboard() {
 async function loadDashboardStats() {
     try {
         showLoading();
-        
+
         // Fetch stats from API
         const response = await fetch('/api/dashboard/stats');
         const stats = await response.json();
-        
+
         if (stats.success) {
             updateStatsDisplay(stats.data);
         } else {
@@ -39,11 +39,11 @@ function updateStatsDisplay(data) {
     // Update vendors stats
     const vendorsCount = document.getElementById('vendors-count');
     const activeVendors = document.getElementById('active-vendors');
-    
+
     // Add food vendors stats
     const foodVendorsCount = document.getElementById('food-vendors-count');
     const activeFoodVendors = document.getElementById('active-food-vendors');
-    
+
     const teamsCount = document.getElementById('teams-count');
     const approvedTeams = document.getElementById('approved-teams');
     const sponsorsCount = document.getElementById('sponsors-count');
@@ -55,11 +55,11 @@ function updateStatsDisplay(data) {
 
     if (vendorsCount) vendorsCount.textContent = data.vendors?.total || 0;
     if (activeVendors) activeVendors.textContent = data.vendors?.active || 0;
-    
+
     // Add food vendors display update
     if (foodVendorsCount) foodVendorsCount.textContent = data.foodVendors?.total || 0;
     if (activeFoodVendors) activeFoodVendors.textContent = data.foodVendors?.active || 0;
-    
+
     if (teamsCount) teamsCount.textContent = data.teams?.total || 0;
     if (approvedTeams) approvedTeams.textContent = data.teams?.approved || 0;
     if (sponsorsCount) sponsorsCount.textContent = data.sponsors?.total || 0;
@@ -75,10 +75,11 @@ async function loadRecentActivity() {
     try {
         const response = await fetch('/api/dashboard/activity');
         const activity = await response.json();
-        
+
         if (activity.success) {
             updateActivityDisplay(activity.data);
         } else {
+            console.log(activity);
             showToast('Failed to load recent activity', 'error');
         }
     } catch (error) {
@@ -93,17 +94,19 @@ async function loadRecentActivity() {
 // Update activity display
 function updateActivityDisplay(activities) {
     const activityList = document.getElementById('activity-list');
-    
+
     if (!activityList) {
         return;
     }
-    
+
     if (!activities || activities.length === 0) {
         activityList.innerHTML = '<p>No recent activity</p>';
         return;
     }
-    
-    const activityHTML = activities.map(activity => `
+
+    const activityHTML = activities
+        .map(
+            (activity) => `
         <div class="activity-item">
             <div class="activity-icon">${getActivityIcon(activity.type)}</div>
             <div class="activity-content">
@@ -111,20 +114,23 @@ function updateActivityDisplay(activities) {
                 <div class="activity-time">${formatRelativeTime(activity.timestamp)}</div>
             </div>
         </div>
-    `).join('');
-    
+    `
+        )
+        .join('');
+
     activityList.innerHTML = activityHTML;
 }
 
 // Get activity icon based on type
 function getActivityIcon(type) {
     const icons = {
-        'vendor': '🏪',
+        vendor: '🏪',
         'food-vendor': '🍔',
-        'team': '👥',
-        'sponsor': '🤝',
-        'payment': '💰',
-        'default': '📝'
+        team: '👥',
+        sponsor: '🤝',
+        payment: '💰',
+        'bounce-house': '🎈',
+        default: '📝',
     };
     return icons[type] || icons.default;
 }
@@ -132,17 +138,17 @@ function getActivityIcon(type) {
 // Setup event listeners
 function setupEventListeners() {
     // Navigation links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function(e) {
+    document.querySelectorAll('.nav-link').forEach((link) => {
+        link.addEventListener('click', function (e) {
             // Update active state
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach((l) => l.classList.remove('active'));
             this.classList.add('active');
         });
     });
-    
+
     // Mobile menu toggle (if needed)
     setupMobileMenu();
-    
+
     // Auto-refresh stats every 5 minutes
     setInterval(loadDashboardStats, 5 * 60 * 1000);
 }
@@ -153,9 +159,9 @@ function setupMobileMenu() {
     if (window.innerWidth <= 768) {
         addMobileMenuButton();
     }
-    
+
     // Listen for window resize
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         if (window.innerWidth <= 768) {
             addMobileMenuButton();
         } else {
@@ -166,7 +172,7 @@ function setupMobileMenu() {
 
 function addMobileMenuButton() {
     if (document.querySelector('.mobile-menu-btn')) return;
-    
+
     const menuBtn = document.createElement('button');
     menuBtn.className = 'mobile-menu-btn';
     menuBtn.innerHTML = '☰';
@@ -183,11 +189,11 @@ function addMobileMenuButton() {
         font-size: 1.2rem;
         cursor: pointer;
     `;
-    
-    menuBtn.addEventListener('click', function() {
+
+    menuBtn.addEventListener('click', function () {
         document.querySelector('.sidebar').classList.toggle('show');
     });
-    
+
     document.body.appendChild(menuBtn);
 }
 
@@ -203,7 +209,7 @@ function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
-        minimumFractionDigits: 0
+        minimumFractionDigits: 0,
     }).format(amount);
 }
 
@@ -211,7 +217,7 @@ function formatRelativeTime(timestamp) {
     const now = new Date();
     const time = new Date(timestamp);
     const diffInSeconds = Math.floor((now - time) / 1000);
-    
+
     if (diffInSeconds < 60) return 'Just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
@@ -220,7 +226,7 @@ function formatRelativeTime(timestamp) {
 
 function showLoading() {
     // Add loading spinner to stats cards
-    document.querySelectorAll('.stat-info h3').forEach(el => {
+    document.querySelectorAll('.stat-info h3').forEach((el) => {
         el.innerHTML = '<span class="loading"></span>';
     });
 }
@@ -231,17 +237,17 @@ function hideLoading() {
 
 function showToast(message, type = 'info') {
     // Remove existing toasts
-    document.querySelectorAll('.toast').forEach(toast => toast.remove());
-    
+    document.querySelectorAll('.toast').forEach((toast) => toast.remove());
+
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
-    
+
     document.body.appendChild(toast);
-    
+
     // Trigger animation
     setTimeout(() => toast.classList.add('show'), 100);
-    
+
     // Auto-hide after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
@@ -255,5 +261,5 @@ window.dashboardUtils = {
     formatRelativeTime,
     showToast,
     showLoading,
-    hideLoading
+    hideLoading,
 };

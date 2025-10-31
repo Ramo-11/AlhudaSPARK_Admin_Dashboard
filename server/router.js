@@ -11,6 +11,8 @@ const sponsors = require('./sponsorsController');
 const players = require('./playersController');
 const FoodVendor = require('../models/FoodVendor');
 const foodVendors = require('./foodVendorsController');
+const BounceHouseRegistration = require('../models/BounceHouseRegistration');
+const bounceHouse = require('./bounceHouseController');
 const { requireAuth, verifyPassword, setAuthCookie, clearAuthCookie } = require('./authMiddleware');
 
 const {
@@ -53,6 +55,7 @@ route.get('/food-vendors', requireAuth, (req, res) => res.render('food-vendors')
 route.get('/teams', requireAuth, (req, res) => res.render('teams'));
 route.get('/sponsors', requireAuth, (req, res) => res.render('sponsors'));
 route.get('/players', requireAuth, (req, res) => res.render('players'));
+route.get('/bounce-house', requireAuth, (req, res) => res.render('bounce-house'));
 
 // Dashboard API
 route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
@@ -107,6 +110,11 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
             { $group: { _id: null, sum: { $sum: '$registrationFee' } } },
         ]);
 
+        const [bhTotal, bhActive] = await Promise.all([
+            BounceHouseRegistration.countDocuments({}),
+            BounceHouseRegistration.countDocuments({ isActive: true }),
+        ]);
+
         const pending = await Promise.all([
             Vendor.countDocuments({ paymentStatus: 'pending' }),
             FoodVendor.countDocuments({ paymentStatus: 'pending' }),
@@ -123,6 +131,7 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
                 teams: { total: tTotal, approved: tApproved },
                 sponsors: { total: sTotal, active: sActive },
                 players: { total: pTotal, approved: pApproved },
+                bounceHouse: { total: bhTotal, active: bhActive },
                 practiceRevenue: practiceRev[0]?.sum || 0,
                 revenue: {
                     total:
@@ -143,28 +152,48 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
 route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
     try {
         const limit = 10;
-        const map = (doc, type, title) => doc && { type, title, timestamp: doc.createdAt };
 
-        const [v, fv, t, s] = await Promise.all([
-            Vendor.find({}).sort('-createdAt').limit(limit),
-            FoodVendor.find({}).sort('-createdAt').limit(limit),
-            Team.find({}).sort('-createdAt').limit(limit),
-            Sponsor.find({}).sort('-createdAt').limit(limit),
+        // Helper function to map documents to activity items
+        const map = (doc, type, title) => {
+            if (!doc) return null;
+            return {
+                type,
+                title,
+                timestamp: doc.createdAt,
+            };
+        };
+
+        // Fetch recent items from each collection
+        const [v, fv, t, s, p, bh] = await Promise.all([
+            Vendor.find({}).sort('-createdAt').limit(limit).lean(),
+            FoodVendor.find({}).sort('-createdAt').limit(limit).lean(),
+            Team.find({}).sort('-createdAt').limit(limit).lean(),
+            Sponsor.find({}).sort('-createdAt').limit(limit).lean(),
+            Player.find({}).sort('-createdAt').limit(limit).lean(),
+            BounceHouseRegistration.find({}).sort('-createdAt').limit(limit).lean(),
         ]);
 
+        // Combine all activities
         const items = [
-            ...v.map((x) => map(x, 'vendor', `Vendor: ${x.businessName}`)),
-            ...fv.map((x) => map(x, 'food-vendor', `Food Vendor: ${x.businessName}`)),
-            ...t.map((x) => map(x, 'team', `Team: ${x.teamName}`)),
-            ...s.map((x) => map(x, 'sponsor', `Sponsor: ${x.companyName}`)),
+            ...(v || []).map((x) => map(x, 'vendor', `Vendor: ${x.businessName}`)),
+            ...(fv || []).map((x) => map(x, 'food-vendor', `Food Vendor: ${x.businessName}`)),
+            ...(t || []).map((x) => map(x, 'team', `Team: ${x.teamName}`)),
+            ...(s || []).map((x) => map(x, 'sponsor', `Sponsor: ${x.companyName}`)),
+            ...(p || []).map((x) => map(x, 'player', `Player: ${x.playerName}`)),
+            ...(bh || []).map((x) => map(x, 'bounce-house', `Bounce House: ${x.parentName}`)),
         ]
-            .filter(Boolean)
-            .sort((a, b) => b.timestamp - a.timestamp)
+            .filter(Boolean) // Remove any null entries
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
             .slice(0, limit);
 
         res.json({ success: true, data: items });
     } catch (e) {
-        res.json({ success: false, message: 'Activity error' });
+        console.error('Dashboard activity error:', e);
+        res.json({
+            success: false,
+            message: 'Activity error',
+            error: e.message,
+        });
     }
 });
 
@@ -204,5 +233,11 @@ route.post('/api/players', requireAuth, players.create);
 route.put('/api/players/:id', requireAuth, players.update);
 route.patch('/api/players/:id/payment', requireAuth, players.updatePayment);
 route.delete('/api/players/:id', requireAuth, players.remove);
+
+// Bounce House API routes
+route.get('/api/bounce-house', requireAuth, bounceHouse.getAll);
+route.get('/api/bounce-house/stats', requireAuth, bounceHouse.getStats);
+route.put('/api/bounce-house/:id', requireAuth, bounceHouse.update);
+route.delete('/api/bounce-house/:id', requireAuth, bounceHouse.remove);
 
 module.exports = route;

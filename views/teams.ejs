@@ -50,7 +50,20 @@
                             Practice Players
                         </a>
                     </li>
-                    <li class="nav-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1rem;">
+                    <li class="nav-item">
+                        <a href="/bounce-house" class="nav-link">
+                            <span class="nav-icon">🎈</span>
+                            Bounce House
+                        </a>
+                    </li>
+                    <li
+                        class="nav-item"
+                        style="
+                            margin-top: auto;
+                            border-top: 1px solid rgba(255, 255, 255, 0.1);
+                            padding-top: 1rem;
+                        "
+                    >
                         <a href="/logout" class="nav-link">
                             <span class="nav-icon">🚪</span>
                             Logout
@@ -309,7 +322,11 @@
 
                         <div class="form-group">
                             <label class="form-label">Payment Status</label>
-                            <select name="paymentStatus" id="edit-payment-status" class="form-select">
+                            <select
+                                name="paymentStatus"
+                                id="edit-payment-status"
+                                class="form-select"
+                            >
                                 <option value="pending">Pending</option>
                                 <option value="processing">Processing</option>
                                 <option value="completed">Completed</option>
@@ -317,10 +334,14 @@
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label class="form-label">Payment Method</label>
-                            <select name="paymentMethod" id="edit-payment-method" class="form-select">
+                            <select
+                                name="paymentMethod"
+                                id="edit-payment-method"
+                                class="form-select"
+                            >
                                 <option value="">Select Method</option>
                                 <option value="check">Check</option>
                                 <option value="cash">Cash</option>
@@ -331,7 +352,7 @@
                                 <option value="wire_transfer">Wire Transfer</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label class="form-label">Transaction ID</label>
                             <input
