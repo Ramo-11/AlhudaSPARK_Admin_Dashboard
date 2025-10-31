@@ -53,6 +53,20 @@ const bounceHouseRegistrationSchema = new mongoose.Schema(
             trim: true,
         },
 
+        // Payment Method
+        paymentMethod: {
+            type: String,
+            required: true,
+            enum: ['cash', 'card', 'zelle', 'other'],
+        },
+        otherPaymentMethod: {
+            type: String,
+            trim: true,
+            required: function () {
+                return this.paymentMethod === 'other';
+            },
+        },
+
         // Children Information (1-5 children)
         children: {
             type: [childSchema],

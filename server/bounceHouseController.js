@@ -31,6 +31,12 @@ exports.getStats = async (req, res) => {
             });
         });
 
+        const paymentMethods = {};
+        registrations.forEach((reg) => {
+            const method = reg.paymentMethod;
+            paymentMethods[method] = (paymentMethods[method] || 0) + 1;
+        });
+
         res.json({
             success: true,
             data: {
@@ -39,6 +45,7 @@ exports.getStats = async (req, res) => {
                 totalChildren,
                 maleCount,
                 femaleCount,
+                paymentMethods,
             },
         });
     } catch (e) {

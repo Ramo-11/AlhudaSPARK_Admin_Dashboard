@@ -101,7 +101,7 @@ function updateRegistrationsTable() {
     if (paginatedRegistrations.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="9" style="text-align: center; padding: 2rem;">
+                <td colspan="10" style="text-align: center; padding: 2rem;">
                     No registrations found
                 </td>
             </tr>
@@ -131,6 +131,7 @@ function updateRegistrationsTable() {
                 </span>
             </td>
             <td>${formatSignatureType(reg.signatureType)}</td>
+            <td>${formatPaymentMethod(reg.paymentMethod, reg.otherPaymentMethod)}</td>
             <td>
                 <span class="status-badge ${reg.isActive ? 'status-approved' : 'status-pending'}">
                     ${reg.isActive ? 'Active' : 'Inactive'}
@@ -153,6 +154,13 @@ function updateRegistrationsTable() {
     `
         )
         .join('');
+}
+
+function formatPaymentMethod(method, other) {
+    if (method === 'other' && other) {
+        return `Other (${other})`;
+    }
+    return method.charAt(0).toUpperCase() + method.slice(1);
 }
 
 // View registration details
@@ -200,6 +208,15 @@ function viewDetails(registrationId) {
                 <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
                     Type: ${formatSignatureType(reg.signatureType)}
                 </p>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 1rem; color: #333;">Payment Information</h3>
+                <p><strong>Payment Method:</strong> ${
+                    reg.paymentMethod === 'other'
+                        ? `Other (${reg.otherPaymentMethod || 'Not specified'})`
+                        : reg.paymentMethod.charAt(0).toUpperCase() + reg.paymentMethod.slice(1)
+                }</p>
             </div>
 
             <div>
@@ -412,6 +429,7 @@ function generateCSV(registrations) {
         'Child 5 Age',
         'Child 5 Gender',
         'Signature Type',
+        'Payment Method',
         'Terms Accepted',
         'Accepted Date',
         'Status',
@@ -439,6 +457,9 @@ function generateCSV(registrations) {
 
         row.push(
             formatSignatureType(reg.signatureType),
+            reg.paymentMethod === 'other'
+                ? `Other (${reg.otherPaymentMethod || ''})`
+                : reg.paymentMethod,
             reg.acceptedTerms ? 'Yes' : 'No',
             new Date(reg.acceptedTermsDate).toLocaleString(),
             reg.isActive ? 'Active' : 'Inactive',
