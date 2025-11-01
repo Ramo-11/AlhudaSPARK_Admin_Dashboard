@@ -13,6 +13,8 @@ const FoodVendor = require('../models/FoodVendor');
 const foodVendors = require('./foodVendorsController');
 const BounceHouseRegistration = require('../models/BounceHouseRegistration');
 const bounceHouse = require('./bounceHouseController');
+const Feedback = require('../models/Feedback');
+const feedbackAdmin = require('./feedbackController');
 const { requireAuth, verifyPassword, setAuthCookie, clearAuthCookie } = require('./authMiddleware');
 
 const {
@@ -85,6 +87,16 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
             Player.countDocuments({ registrationStatus: 'approved' }),
         ]);
 
+        const [bhTotal, bhActive] = await Promise.all([
+            BounceHouseRegistration.countDocuments({}),
+            BounceHouseRegistration.countDocuments({ isActive: true }),
+        ]);
+
+        const [fbTotal, fbActive] = await Promise.all([
+            Feedback.countDocuments({}),
+            Feedback.countDocuments({ isActive: true }),
+        ]);
+
         const vendRev = await Vendor.aggregate([
             { $match: { paymentStatus: 'completed' } },
             { $group: { _id: 0, sum: { $sum: '$totalBoothPrice' } } },
@@ -110,11 +122,6 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
             { $group: { _id: null, sum: { $sum: '$registrationFee' } } },
         ]);
 
-        const [bhTotal, bhActive] = await Promise.all([
-            BounceHouseRegistration.countDocuments({}),
-            BounceHouseRegistration.countDocuments({ isActive: true }),
-        ]);
-
         const pending = await Promise.all([
             Vendor.countDocuments({ paymentStatus: 'pending' }),
             FoodVendor.countDocuments({ paymentStatus: 'pending' }),
@@ -132,6 +139,7 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
                 sponsors: { total: sTotal, active: sActive },
                 players: { total: pTotal, approved: pApproved },
                 bounceHouse: { total: bhTotal, active: bhActive },
+                feedback: { total: fbTotal, active: fbActive },
                 practiceRevenue: practiceRev[0]?.sum || 0,
                 revenue: {
                     total:
@@ -153,7 +161,6 @@ route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
     try {
         const limit = 10;
 
-        // Helper function to map documents to activity items
         const map = (doc, type, title) => {
             if (!doc) return null;
             return {
@@ -163,17 +170,16 @@ route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
             };
         };
 
-        // Fetch recent items from each collection
-        const [v, fv, t, s, p, bh] = await Promise.all([
+        const [v, fv, t, s, p, bh, fb] = await Promise.all([
             Vendor.find({}).sort('-createdAt').limit(limit).lean(),
             FoodVendor.find({}).sort('-createdAt').limit(limit).lean(),
             Team.find({}).sort('-createdAt').limit(limit).lean(),
             Sponsor.find({}).sort('-createdAt').limit(limit).lean(),
             Player.find({}).sort('-createdAt').limit(limit).lean(),
             BounceHouseRegistration.find({}).sort('-createdAt').limit(limit).lean(),
+            Feedback.find({}).sort('-createdAt').limit(limit).lean(),
         ]);
 
-        // Combine all activities
         const items = [
             ...(v || []).map((x) => map(x, 'vendor', `Vendor: ${x.businessName}`)),
             ...(fv || []).map((x) => map(x, 'food-vendor', `Food Vendor: ${x.businessName}`)),
@@ -181,8 +187,9 @@ route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
             ...(s || []).map((x) => map(x, 'sponsor', `Sponsor: ${x.companyName}`)),
             ...(p || []).map((x) => map(x, 'player', `Player: ${x.playerName}`)),
             ...(bh || []).map((x) => map(x, 'bounce-house', `Bounce House: ${x.parentName}`)),
+            ...(fb || []).map((x) => map(x, 'feedback', `Feedback from ${x.name || 'Anonymous'}`)),
         ]
-            .filter(Boolean) // Remove any null entries
+            .filter(Boolean)
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
             .slice(0, limit);
 
@@ -239,5 +246,11 @@ route.get('/api/bounce-house', requireAuth, bounceHouse.getAll);
 route.get('/api/bounce-house/stats', requireAuth, bounceHouse.getStats);
 route.put('/api/bounce-house/:id', requireAuth, bounceHouse.update);
 route.delete('/api/bounce-house/:id', requireAuth, bounceHouse.remove);
+
+route.get('/feedback', requireAuth, (req, res) => res.render('feedback'));
+route.get('/api/feedback', requireAuth, feedbackAdmin.getAll);
+route.get('/api/feedback/stats', requireAuth, feedbackAdmin.getStats);
+route.put('/api/feedback/:id', requireAuth, feedbackAdmin.update);
+route.delete('/api/feedback/:id', requireAuth, feedbackAdmin.remove);
 
 module.exports = route;
