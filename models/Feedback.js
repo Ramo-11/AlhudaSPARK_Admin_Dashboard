@@ -28,75 +28,75 @@ const feedbackSchema = new mongoose.Schema(
         ratings: {
             organization: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             communication: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             volunteers: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             cleanliness: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             foodQuality: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             pricing: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             checkin: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             tournamentManagement: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             quranManagement: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             schedule: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             seating: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
             overall: {
                 type: Number,
-                required: true,
                 min: 1,
                 max: 5,
+                default: undefined,
             },
         },
 
@@ -154,21 +154,12 @@ feedbackSchema.statics.generateFeedbackId = function () {
 
 // Virtual for average rating
 feedbackSchema.virtual('averageRating').get(function () {
-    const ratings = this.ratings;
-    const sum =
-        ratings.organization +
-        ratings.communication +
-        ratings.volunteers +
-        ratings.cleanliness +
-        ratings.foodQuality +
-        ratings.pricing +
-        ratings.checkin +
-        ratings.tournamentManagement +
-        ratings.quranManagement +
-        ratings.schedule +
-        ratings.seating +
-        ratings.overall;
-    return (sum / 12).toFixed(2);
+    const ratingValues = Object.values(this.ratings).filter(
+        (val) => val !== undefined && val !== null
+    );
+    if (ratingValues.length === 0) return '0.00';
+    const sum = ratingValues.reduce((acc, val) => acc + val, 0);
+    return (sum / ratingValues.length).toFixed(2);
 });
 
 // Transform for JSON output

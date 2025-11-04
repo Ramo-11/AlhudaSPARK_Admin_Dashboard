@@ -112,7 +112,6 @@ function updateFeedbackTable() {
                 minute: 'numeric',
                 hour12: true,
             })}</td>
-            <td><strong>${fb.feedbackId}</strong></td>
             <td>${fb.name || 'Anonymous'}</td>
             <td>${fb.email || 'N/A'}</td>
             <td>

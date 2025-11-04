@@ -17,8 +17,23 @@ exports.getStats = async (req, res) => {
         const total = await Feedback.countDocuments({});
         const feedbackList = await Feedback.find({});
 
-        // Calculate average ratings
+        // Calculate average ratings - only count responses that exist
         let totalRatings = {
+            organization: 0,
+            communication: 0,
+            volunteers: 0,
+            cleanliness: 0,
+            foodQuality: 0,
+            pricing: 0,
+            checkin: 0,
+            tournamentManagement: 0,
+            quranManagement: 0,
+            schedule: 0,
+            seating: 0,
+            overall: 0,
+        };
+
+        let ratingCounts = {
             organization: 0,
             communication: 0,
             volunteers: 0,
@@ -35,20 +50,24 @@ exports.getStats = async (req, res) => {
 
         feedbackList.forEach((fb) => {
             Object.keys(totalRatings).forEach((key) => {
-                totalRatings[key] += fb.ratings[key];
+                if (fb.ratings[key] !== undefined && fb.ratings[key] !== null) {
+                    totalRatings[key] += fb.ratings[key];
+                    ratingCounts[key]++;
+                }
             });
         });
 
         const averages = {};
         Object.keys(totalRatings).forEach((key) => {
-            averages[key] = total > 0 ? (totalRatings[key] / total).toFixed(2) : 0;
+            averages[key] =
+                ratingCounts[key] > 0 ? (totalRatings[key] / ratingCounts[key]).toFixed(2) : '0.00';
         });
 
-        // Calculate overall average
+        // Calculate overall average across all ratings that were provided
+        const allRatingValues = Object.values(totalRatings).reduce((a, b) => a + b, 0);
+        const allRatingCounts = Object.values(ratingCounts).reduce((a, b) => a + b, 0);
         const overallAvg =
-            total > 0
-                ? (Object.values(totalRatings).reduce((a, b) => a + b, 0) / (total * 12)).toFixed(2)
-                : 0;
+            allRatingCounts > 0 ? (allRatingValues / allRatingCounts).toFixed(2) : '0.00';
 
         res.json({
             success: true,
