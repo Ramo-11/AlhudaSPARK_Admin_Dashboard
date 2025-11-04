@@ -14,7 +14,9 @@ const foodVendors = require('./foodVendorsController');
 const BounceHouseRegistration = require('../models/BounceHouseRegistration');
 const bounceHouse = require('./bounceHouseController');
 const Feedback = require('../models/Feedback');
-const feedbackAdmin = require('./feedbackController');
+const feedbackController = require('./feedbackController');
+const InternalFeedback = require('../models/InternalFeedback');
+const internalFeedbackController = require('./internalFeedbackController');
 const { requireAuth, verifyPassword, setAuthCookie, clearAuthCookie } = require('./authMiddleware');
 
 const {
@@ -97,6 +99,11 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
             Feedback.countDocuments({ isActive: true }),
         ]);
 
+        const [ifbTotal, ifbActive] = await Promise.all([
+            InternalFeedback.countDocuments({}),
+            InternalFeedback.countDocuments({ isActive: true }),
+        ]);
+
         const vendRev = await Vendor.aggregate([
             { $match: { paymentStatus: 'completed' } },
             { $group: { _id: 0, sum: { $sum: '$totalBoothPrice' } } },
@@ -140,6 +147,7 @@ route.get('/api/dashboard/stats', requireAuth, async (req, res) => {
                 players: { total: pTotal, approved: pApproved },
                 bounceHouse: { total: bhTotal, active: bhActive },
                 feedback: { total: fbTotal, active: fbActive },
+                internalFeedback: { total: ifbTotal, active: ifbActive },
                 practiceRevenue: practiceRev[0]?.sum || 0,
                 revenue: {
                     total:
@@ -170,7 +178,7 @@ route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
             };
         };
 
-        const [v, fv, t, s, p, bh, fb] = await Promise.all([
+        const [v, fv, t, s, p, bh, fb, ifb] = await Promise.all([
             Vendor.find({}).sort('-createdAt').limit(limit).lean(),
             FoodVendor.find({}).sort('-createdAt').limit(limit).lean(),
             Team.find({}).sort('-createdAt').limit(limit).lean(),
@@ -178,6 +186,7 @@ route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
             Player.find({}).sort('-createdAt').limit(limit).lean(),
             BounceHouseRegistration.find({}).sort('-createdAt').limit(limit).lean(),
             Feedback.find({}).sort('-createdAt').limit(limit).lean(),
+            InternalFeedback.find({}).sort('-createdAt').limit(limit).lean(),
         ]);
 
         const items = [
@@ -188,6 +197,9 @@ route.get('/api/dashboard/activity', requireAuth, async (req, res) => {
             ...(p || []).map((x) => map(x, 'player', `Player: ${x.playerName}`)),
             ...(bh || []).map((x) => map(x, 'bounce-house', `Bounce House: ${x.parentName}`)),
             ...(fb || []).map((x) => map(x, 'feedback', `Feedback from ${x.name || 'Anonymous'}`)),
+            ...(ifb || []).map((x) =>
+                map(x, 'internal-feedback', `Team Feedback from ${x.name || 'Anonymous'}`)
+            ),
         ]
             .filter(Boolean)
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -248,9 +260,15 @@ route.put('/api/bounce-house/:id', requireAuth, bounceHouse.update);
 route.delete('/api/bounce-house/:id', requireAuth, bounceHouse.remove);
 
 route.get('/feedback', requireAuth, (req, res) => res.render('feedback'));
-route.get('/api/feedback', requireAuth, feedbackAdmin.getAll);
-route.get('/api/feedback/stats', requireAuth, feedbackAdmin.getStats);
-route.put('/api/feedback/:id', requireAuth, feedbackAdmin.update);
-route.delete('/api/feedback/:id', requireAuth, feedbackAdmin.remove);
+route.get('/api/feedback', requireAuth, feedbackController.getAll);
+route.get('/api/feedback/stats', requireAuth, feedbackController.getStats);
+route.put('/api/feedback/:id', requireAuth, feedbackController.update);
+route.delete('/api/feedback/:id', requireAuth, feedbackController.remove);
+
+route.get('/internal-feedback', requireAuth, (req, res) => res.render('internal-feedback'));
+route.get('/api/internal-feedback', requireAuth, internalFeedbackController.getAll);
+route.get('/api/internal-feedback/stats', requireAuth, internalFeedbackController.getStats);
+route.put('/api/internal-feedback/:id', requireAuth, internalFeedbackController.update);
+route.delete('/api/internal-feedback/:id', requireAuth, internalFeedbackController.remove);
 
 module.exports = route;
