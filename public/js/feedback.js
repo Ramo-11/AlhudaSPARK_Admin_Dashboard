@@ -1,10 +1,10 @@
-// Feedback Admin JavaScript - feedback.js
-
 let currentFeedback = [];
 let filteredFeedback = [];
 let currentPage = 1;
 let itemsPerPage = 10;
 let editingFeedbackId = null;
+let sortOption = 'createdAt-desc';
+let selectedRatingFilter = 'all';
 
 document.addEventListener('DOMContentLoaded', function () {
     initFeedbackPage();
@@ -29,6 +29,8 @@ function setupEventListeners() {
 
     document.getElementById('search-input').addEventListener('input', debounce(applyFilters, 300));
     document.getElementById('export-btn').addEventListener('click', exportFeedback);
+    document.getElementById('rating-filter').addEventListener('change', handleRatingFilterChange);
+    document.getElementById('feedback-sort').addEventListener('change', handleSortChange);
 
     document.getElementById('details-modal').addEventListener('click', function (e) {
         if (e.target === this) closeDetailsModal();
@@ -43,6 +45,16 @@ function setupEventListeners() {
     });
 }
 
+function handleSortChange(e) {
+    sortOption = e.target.value;
+    applyFilters();
+}
+
+function handleRatingFilterChange(e) {
+    selectedRatingFilter = e.target.value;
+    applyFilters();
+}
+
 async function loadFeedback() {
     try {
         showLoading();
@@ -52,8 +64,7 @@ async function loadFeedback() {
         if (result.success) {
             currentFeedback = result.data;
             filteredFeedback = [...currentFeedback];
-            updateFeedbackTable();
-            updatePagination();
+            applyFilters();
         } else {
             showToast('Failed to load feedback', 'error');
         }
@@ -71,16 +82,80 @@ async function loadStats() {
         const result = await response.json();
 
         if (result.success) {
-            document.getElementById('total-feedback').textContent = result.data.total || 0;
-            document.getElementById('overall-avg').textContent = result.data.overallAvg || '0.0';
+            const data = result.data;
+
+            document.getElementById('total-feedback').textContent = data.total || 0;
+            document.getElementById('overall-avg').textContent = data.overallAvg || '0.0';
             document.getElementById('organization-avg').textContent =
-                result.data.averages.organization || '0.0';
+                data.averages.organization || '0.0';
             document.getElementById('tournament-avg').textContent =
-                result.data.averages.tournamentManagement || '0.0';
+                data.averages.tournamentManagement || '0.0';
+
+            // Update highest and lowest categories
+            const highestLabel = formatCategoryLabel(data.highest.category);
+            document.getElementById('highest-category').textContent = highestLabel;
+            document.getElementById('highest-rating').textContent = data.highest.average.toFixed(1);
+
+            const lowestLabel = formatCategoryLabel(data.lowest.category);
+            document.getElementById('lowest-category').textContent = lowestLabel;
+            document.getElementById('lowest-rating').textContent = data.lowest.average.toFixed(1);
+
+            // Populate rating filter dropdown
+            populateRatingFilter(data.averages, data.ratingCounts);
         }
     } catch (error) {
         console.error('Error loading stats:', error);
     }
+}
+
+function populateRatingFilter(averages, counts) {
+    const select = document.getElementById('rating-filter');
+    const currentValue = select.value;
+
+    // Clear existing options except "All Ratings"
+    select.innerHTML = '<option value="all">All Ratings</option>';
+
+    const ratingLabels = {
+        organization: 'Event Organization',
+        communication: 'Communication',
+        volunteers: 'Volunteers/Staff',
+        cleanliness: 'Venue Cleanliness',
+        foodQuality: 'Food Quality',
+        pricing: 'Fair Pricing',
+        checkin: 'Check-in Process',
+        tournamentManagement: 'Tournament Management',
+        quranManagement: 'Quran Competition',
+        schedule: 'Event Schedule',
+        seating: 'Seating & Comfort',
+        overall: 'Overall Experience',
+    };
+
+    Object.keys(ratingLabels).forEach((key) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${ratingLabels[key]} (Avg: ${averages[key]}, Count: ${counts[key]})`;
+        select.appendChild(option);
+    });
+
+    select.value = currentValue;
+}
+
+function formatCategoryLabel(category) {
+    const labels = {
+        organization: 'Organization',
+        communication: 'Communication',
+        volunteers: 'Volunteers',
+        cleanliness: 'Cleanliness',
+        foodQuality: 'Food Quality',
+        pricing: 'Pricing',
+        checkin: 'Check-in',
+        tournamentManagement: 'Tournament',
+        quranManagement: 'Quran',
+        schedule: 'Schedule',
+        seating: 'Seating',
+        overall: 'Overall',
+    };
+    return labels[category] || category;
 }
 
 function updateFeedbackTable() {
@@ -92,7 +167,7 @@ function updateFeedbackTable() {
     if (paginatedFeedback.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 2rem;">
+                <td colspan="7" style="text-align: center; padding: 2rem;">
                     No feedback found
                 </td>
             </tr>
@@ -116,7 +191,7 @@ function updateFeedbackTable() {
             <td>${fb.email || 'N/A'}</td>
             <td>
                 <span style="font-size: 1.1rem;">
-                    ${'⭐'.repeat(fb.ratings.overall)}
+                    ${'⭐'.repeat(fb.ratings.overall || 0)}
                 </span>
             </td>
             <td><strong>${fb.averageRating}</strong> / 5</td>
@@ -343,6 +418,7 @@ async function handleDelete() {
 function applyFilters() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
 
+    // Filter the feedback
     filteredFeedback = currentFeedback.filter((fb) => {
         const matchesSearch =
             !searchTerm ||
@@ -352,12 +428,73 @@ function applyFilters() {
             (fb.enjoyedMost && fb.enjoyedMost.toLowerCase().includes(searchTerm)) ||
             (fb.improvements && fb.improvements.toLowerCase().includes(searchTerm));
 
-        return matchesSearch;
+        const matchesRating =
+            selectedRatingFilter === 'all' ||
+            (fb.ratings[selectedRatingFilter] !== undefined &&
+                fb.ratings[selectedRatingFilter] !== null);
+
+        return matchesSearch && matchesRating;
     });
+
+    // Sort the filtered feedback
+    sortFeedback();
 
     currentPage = 1;
     updateFeedbackTable();
     updatePagination();
+}
+
+function sortFeedback() {
+    const [field, direction] = sortOption.split('-');
+
+    filteredFeedback.sort((a, b) => {
+        let aVal, bVal;
+
+        switch (field) {
+            case 'createdAt':
+                aVal = new Date(a.createdAt);
+                bVal = new Date(b.createdAt);
+                break;
+            case 'name':
+                aVal = (a.name || 'Anonymous').toLowerCase();
+                bVal = (b.name || 'Anonymous').toLowerCase();
+                break;
+            case 'email':
+                aVal = (a.email || '').toLowerCase();
+                bVal = (b.email || '').toLowerCase();
+                break;
+            case 'overall':
+                aVal = a.ratings.overall || 0;
+                bVal = b.ratings.overall || 0;
+                break;
+            case 'average':
+                aVal = parseFloat(a.averageRating);
+                bVal = parseFloat(b.averageRating);
+                break;
+            case 'status':
+                aVal = a.isActive ? 1 : 0;
+                bVal = b.isActive ? 1 : 0;
+                break;
+            default:
+                return 0;
+        }
+
+        // Handle different data types
+        if (aVal instanceof Date && bVal instanceof Date) {
+            return direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+            return direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+            // String comparison
+            aVal = String(aVal || '').toLowerCase();
+            bVal = String(bVal || '').toLowerCase();
+            if (direction === 'asc') {
+                return aVal.localeCompare(bVal);
+            } else {
+                return bVal.localeCompare(aVal);
+            }
+        }
+    });
 }
 
 function updatePagination() {
@@ -508,7 +645,7 @@ function debounce(func, wait) {
 function showLoading() {
     const table = document.getElementById('feedback-table-body');
     table.innerHTML =
-        '<tr><td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
+        '<tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>';
 }
 
 function hideLoading() {

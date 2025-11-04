@@ -441,6 +441,24 @@ body {
     overflow-x: auto;
 }
 
+/* Sort indicators */
+.sortable {
+    user-select: none;
+}
+
+.sortable:hover {
+    background-color: #e9ecef !important;
+}
+
+.sort-indicator {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.sortable:hover .sort-indicator {
+    color: #667eea;
+}
+
 /* Compact Table Styles */
 .data-table {
     width: 100%;

@@ -104,6 +104,22 @@
                     </div>
 
                     <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-info">
+                            <h3 id="highest-rating">0.0</h3>
+                            <p id="highest-category">Highest</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">📉</div>
+                        <div class="stat-info">
+                            <h3 id="lowest-rating">0.0</h3>
+                            <p id="lowest-category">Lowest</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
                         <div class="stat-icon">🎯</div>
                         <div class="stat-info">
                             <h3 id="organization-avg">0.0</h3>
@@ -123,6 +139,29 @@
                 <!-- Filters and Actions -->
                 <div class="filters-section">
                     <div class="filters-row">
+                        <div class="filter-group">
+                            <label class="form-label">Filter by Rating Category:</label>
+                            <select id="rating-filter" class="form-select">
+                                <option value="all">All Ratings</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label class="form-label">Sort by:</label>
+                            <select id="feedback-sort" class="form-select">
+                                <option value="createdAt-desc">Date (Newest)</option>
+                                <option value="createdAt-asc">Date (Oldest)</option>
+                                <option value="name-asc">Name (A-Z)</option>
+                                <option value="name-desc">Name (Z-A)</option>
+                                <option value="email-asc">Email (A-Z)</option>
+                                <option value="email-desc">Email (Z-A)</option>
+                                <option value="overall-desc">Overall Rating (High-Low)</option>
+                                <option value="overall-asc">Overall Rating (Low-High)</option>
+                                <option value="average-desc">Avg Rating (High-Low)</option>
+                                <option value="average-asc">Avg Rating (Low-High)</option>
+                                <option value="status-asc">Status (A-Z)</option>
+                                <option value="status-desc">Status (Z-A)</option>
+                            </select>
+                        </div>
                         <div class="action-group">
                             <button id="export-btn" class="btn btn-secondary">Export CSV</button>
                         </div>

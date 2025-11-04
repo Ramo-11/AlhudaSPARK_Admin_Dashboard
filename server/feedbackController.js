@@ -69,12 +69,30 @@ exports.getStats = async (req, res) => {
         const overallAvg =
             allRatingCounts > 0 ? (allRatingValues / allRatingCounts).toFixed(2) : '0.00';
 
+        // Find highest and lowest categories
+        const validAverages = Object.entries(averages)
+            .filter(([key, val]) => parseFloat(val) > 0)
+            .map(([key, val]) => ({ category: key, average: parseFloat(val) }));
+
+        const highest =
+            validAverages.length > 0
+                ? validAverages.reduce((max, curr) => (curr.average > max.average ? curr : max))
+                : { category: 'N/A', average: 0 };
+
+        const lowest =
+            validAverages.length > 0
+                ? validAverages.reduce((min, curr) => (curr.average < min.average ? curr : min))
+                : { category: 'N/A', average: 0 };
+
         res.json({
             success: true,
             data: {
                 total,
                 averages,
                 overallAvg,
+                highest,
+                lowest,
+                ratingCounts,
             },
         });
     } catch (e) {
